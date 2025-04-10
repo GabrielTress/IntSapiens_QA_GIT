@@ -1,0 +1,178 @@
+/* Sequenciamento.css */
+.container {
+  width: 100%;
+  margin: 20 auto;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .label-container {
+    display: auto;
+    gap: 10px; /* Ajuste o espaço entre os inputs conforme necessário */
+    margin-bottom: 20px;
+    
+  }
+
+  .label-containerOP {
+    display: flex;
+    gap: 10px; /* Ajuste o espaço entre os inputs conforme necessário */
+    margin-bottom: 20px;
+    padding: 20px;
+  }
+
+  .label-containerOP label {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .label-container label {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .input-id {
+    width: 160px; /* Ajuste o tamanho do input conforme necessário */
+  }
+
+  .input-atraso {
+    width: 110px; /* Ajuste o tamanho do input conforme necessário */
+    color: #dd380f;
+    text-align: center;
+  }
+  
+  .table-container {
+    overflow-x:auto;
+    width: 100%;
+    display: block;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+  }
+  
+  th {
+    padding: 4px;
+    text-align: center;
+    border: 2px solid #ddd;
+  }
+
+  td {
+    padding: 8px;
+    text-align: center;
+    border: 2px solid #ddd;
+  }
+  
+  tr {
+    cursor: pointer;
+  }
+  
+  tr.selected {
+    background-color: #c7cfd1;
+    color: rgb(0, 0, 0);
+  }
+
+  .button-container {
+    display: auto;
+    gap: 20px; /* Espaço entre os botões */
+    padding: 20px;
+    margin-left: auto;
+  }
+  
+  button {
+    padding: 10px 20px;
+    margin: 2px;
+    font-size: 10;
+    border: none;
+    border-radius: 5px;
+    background-color: #c7cfd1;
+    color: rgb(0, 0, 0);
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  .button:hover {
+    background-color: #747774; /* Cor do botão ao passar o mouse */
+}
+
+.modal-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  min-width: 300px;
+  z-index: 9999;
+}
+
+.modal-content {
+  margin-bottom: 10px; /* Espaço entre a descrição e o botão */
+}
+
+.button-containerCancel {
+  display: flex;
+  justify-content: flex-end; /* Alinha o botão à direita */
+}
+
+.cancel-button {
+  background-color: #d66868;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.cancel-button:hover {
+  background-color: #ac0c0c;
+}
+
+.status-container {
+  display: flex;
+  align-items: center;
+  margin-left: 15px;
+}
+
+.status-item {
+  margin-right: 20px;
+}
+
+.status-legend {
+  display: flex;
+  align-items: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+}
+
+.legend-FSC {
+  width: 20px;
+  height: 20px;
+  background-color: #ADD8E6;
+  border: 1px solid #000;
+  margin-right: 5px;
+}
+.legend-atraso {
+  width: 20px;
+  height: 20px;
+  background-color: #dd380f;
+  border: 1px solid #000;
+  margin-right: 5px;
+}
+
+.custom-toast-error {
+  font-size: 20px; /* Ajuste o tamanho da fonte */
+  padding: 30px;   /* Ajuste o preenchimento */
+  height: 80;
+  background-color: #f3b9b4c0; /* Altere a cor de fundo, se desejado */
+  color: rgb(0, 0, 0); /* Altere a cor do texto */
+}

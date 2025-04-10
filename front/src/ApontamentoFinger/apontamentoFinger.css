@@ -1,0 +1,13 @@
+.tdQuantidade {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .qtdEtiqueta {
+    width: 70px;
+    text-align: center;
+    padding: 4px;
+    box-sizing: border-box;
+  }
+  

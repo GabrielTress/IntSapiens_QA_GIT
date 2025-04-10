@@ -1,0 +1,25 @@
+.container-home {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.button-home {
+    display: block;          /* Faz o botão ocupar a largura inteira */
+    width: 100%;             /* Ajusta a largura do botão para 100% */
+    margin-bottom: 10px;     /* Adiciona espaço entre os botões */
+    padding: 10px;
+    background-color: #c7cfd1;
+    color: rgb(0, 0, 0);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.button-home:hover {
+    background-color: #747774; /* Cor do botão ao passar o mouse */
+}
