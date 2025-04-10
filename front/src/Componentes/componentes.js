@@ -160,7 +160,7 @@ function Componentes() {
                 setWb_numEtq('');
               } catch (error) {
                 console.error('Erro ao realizar o apontamento:', error);
-                toast.error('Erro ao realizar apontamento', {
+                toast.error('Etiqueta já processada', {
                   position: "bottom-center",
                   autoClose: 2000,
                   hideProgressBar: false,

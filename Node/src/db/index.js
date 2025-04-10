@@ -158,14 +158,26 @@ app.get('/infoProdutos/:wb_numProd', async (req, res) => {
 ////////CONSULTA PARA VALIDAR SE A ETIQUETA ESTA ATIVA///////////////
 app.get('/etiquetas', async (req, res) => {
   const connection = await db.getConnection();
+  const { wb_numEtq } = req.query;
+
+  if (!wb_numEtq) {
+    return res.status(400).send('Parâmetro wb_numEtq é obrigatório');
+  }
+
   try {
-    const [results] = await connection.query('SELECT WB_NUMETQ FROM WB_ETIQUETA');
-    res.json(results);
+    const [results] = await connection.query(
+      'SELECT 1 FROM WB_ETIQUETA WHERE WB_NUMETQ = ? LIMIT 1',
+      [wb_numEtq]
+    );
+
+    const existe = results.length > 0;
+    res.json({ existe });
+
   } catch (err) {
     console.error('Erro ao executar a consulta:', err);
     res.status(500).send('Erro ao obter dados');
-  }finally {
-    connection.release(); // Libera a conexão do pool
+  } finally {
+    connection.release();
   }
 });
 
@@ -188,15 +200,20 @@ app.get('/etiquetasFSC', async (req, res) => {
 
 ////////CONSULTA PARA VALIDAR SE A ETIQUETA JA FOI LIDA///////////////
 app.get('/componentes', async (req, res) => {
+  const { wb_numEmp, wb_numEtq } = req.query;
   const connection = await db.getConnection();
+
   try {
-    const [results] = await connection.query('SELECT WB_NUMETQ FROM WB_COMPONENTES');
+    const [results] = await connection.query(
+      `SELECT WB_NUMETQ FROM WB_COMPONENTES WHERE WB_NUMEMP = ? AND WB_NUMETQ = ?`,
+      [wb_numEmp, wb_numEtq]
+    );
     res.json(results);
   } catch (err) {
     console.error('Erro ao executar a consulta:', err);
     res.status(500).send('Erro ao obter dados');
-  }finally {
-    connection.release(); // Libera a conexão do pool
+  } finally {
+    connection.release();
   }
 });
 
