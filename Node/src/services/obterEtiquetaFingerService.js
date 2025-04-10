@@ -1,3 +1,27 @@
+const soap = require('soap');
+const express = require('express');
+const mysql = require('mysql2/promise');
+const cors = require('cors');
+const moment = require('moment');
+
+
+const app = express();
+
+const db = mysql.createPool({
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'projeto_qa'
+});
+
+app.use(cors());
+app.use(express.json());
+
+
+
+const sapiensWsdlUrl = 'http://192.168.0.1:8080/g5-senior-services/sapiens_Synccom.senior.g5.co.int.mpr.Madesp?wsdl';
+const metodoObterEtiqueta = "ObtEtqPro";
+
 const getObterEtiquetaFingerFromSapiens = async () => {
     let connection;
 
@@ -94,3 +118,10 @@ const verificarSeRegistroExiste = async (numEtq, connection) => {
     );
     return rows.length > 0;
 };
+
+module.exports = { getObterEtiquetaFingerFromSapiens };
+
+// RODANDO EM OUTRA PORTA PARA NAO DAR CONFLITO COM A PORTA 3002 DO BANCO
+app.listen(9015, () => {
+    console.log('Server running on port 9015');
+});

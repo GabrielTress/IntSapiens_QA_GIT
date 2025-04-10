@@ -57,14 +57,11 @@ function Componentes() {
         const validaEtiqueta = async () => {
           try {
             const response = await axios.get('http://192.168.0.250:9002/etiquetas', {
-              params: {
-                wb_numEtq
-              }
+              params: { wb_numEtq }
             });
-            
-            const encontrado = response.data.some(item => item.WB_NUMETQ == wb_numEtq);
-            return encontrado;
-            
+        
+            return response.data.existe;
+        
           } catch (error) {
             console.error('Erro ao validar etiqueta', error);
             return false;
