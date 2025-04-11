@@ -359,10 +359,10 @@ app.post('/frame', async (req, res) => {
 
 app.use(bodyParser.json());
 app.post('/printFinger', (req, res) => {
-    const { wb_numOrp, wb_numProd, wb_qtdProd, wb_dtApont, larguraBlanks, espessuraBlanks, comprimentoBlanks, wb_numPed, wb_itemPed, wb_temFsc, wb_numEtq } = req.body;
+    const { wb_numOrp, wb_numProd, wb_qtdProd, wb_dtApont, larguraBlanks, espessuraBlanks, comprimentoBlanks, wb_numPed, wb_itemPed, wb_temFsc, wb_numEtq, wb_nomeRec } = req.body;
 
     const timestamp = Date.now(); // Gera um nome único para o ficheiro
-    const filePath = `//192.168.0.250\\Meus Documentos\\Fabrica\\PCP\\Gabriel\\Projetos\\IntSapiens_QA\\EtiquetaFinger\\etiqueta_${timestamp}.zpl`;
+    const filePath = `//192.168.0.250\\Meus Documentos\\Fabrica\\PCP\\Gabriel\\Projetos\\IntSapiens_QA\\IntSapiens_QA_GIT\\EtiquetaFinger\\etiqueta_${timestamp}.zpl`;
 
     // Criar o conteúdo ZPL
 
@@ -392,7 +392,7 @@ app.post('/printFinger', (req, res) => {
           ^FO0254,40^GB100,1046,2^FS
           ^FO290,45^AN,30,30^FDData:^FS
           ^FO290,130^AN,30,30^FD${wb_dtApont}^FS
-          ^FO290,480^AN,30,30^FDFinger 01^FS
+          ^FO290,480^AN,30,30^FD${wb_nomeRec}^FS
           ^FO255,840^A0,80,80^FD${wb_temFsc}^FS;
           ^FO136,40^GB120,1046,2^FS
           ^FO210,45^AN,30,30^FDProduto:^FS

@@ -10,22 +10,25 @@
     padding: 4px;
     box-sizing: border-box;
   }
-  .selectRecursoEtiquetaFinger{
-    width: 150px;
-    padding: 10px;
+  .selectRecurso {
+    display: flex;
+    align-items: center; /* Alinha verticalmente */
+    gap: 10px; /* Espaço entre o título e o select */
+    margin-bottom: 20px;
+    padding: 5px 30px; /* Alinha com o conteúdo */
+  }
+  
+  .selectRecurso h3 {
+    margin: 0;
+    font-size: 18px;
+    white-space: nowrap;
+  }
+  
+  .selectRecursoEtiquetaFinger {
+    width: 120px; /* Tamanho menor */
+    padding: 6px 8px;
+    font-size: 14px;
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box;
-    font-size: 16px;
   }
-  .selectRecurso{
-    display: flex;
-    gap: 5px; /* Ajuste o espaço entre os inputs conforme necessário */
-    margin-bottom: 20px;
-    padding: 5px;
-  }
-  .selectRecurso h3{
-    margin-left: 30px;
-    font-size: 18px;
-  }
-  

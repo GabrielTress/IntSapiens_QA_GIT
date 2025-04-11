@@ -153,9 +153,24 @@ function ApontamentoFinger() {
         const quantidadeTotalProduzida = quantidadeJaProduzida + quantidadeProduzida;
         const quantidadeMaximaPermitida = quantidadeOriginal * 1.3;
 
-        if (wb_numRec && wb_numOrp && etiqueta.quantidade) {
+        if (wb_numRec && wb_numOrp && etiqueta.quantidade && recurso) {
           if (quantidadeTotalProduzida <= quantidadeMaximaPermitida) {
             try {
+              await axios.post('http://192.168.0.250:9002/printFinger', {
+                wb_numOrp,
+                wb_numProd,
+                wb_qtdProd: etiqueta.quantidade,
+                wb_dtApont,
+                wb_numPed: linhaSelecionada.wb_numPed,
+                wb_itemPed: linhaSelecionada.wb_itemPed,
+                larguraBlanks,
+                espessuraBlanks,
+                comprimentoBlanks: infoTecnicas.WB_COMPRO,
+                wb_temFsc,
+                wb_numEtq: etiqueta.etiqueta,
+                wb_nomeRec: recurso
+              });
+
               await axios.post('http://192.168.0.250:9002/apontamento', {
                 wb_numEmp,
                 wb_numRec,
@@ -173,20 +188,6 @@ function ApontamentoFinger() {
                 wb_numEtq: etiqueta.etiqueta,
                 wb_qtdProd: etiqueta.quantidade,
                 wb_process: 'S'
-              });
-
-              await axios.post('http://192.168.0.250:9002/printFinger', {
-                wb_numOrp,
-                wb_numProd,
-                wb_qtdProd: etiqueta.quantidade,
-                wb_dtApont,
-                wb_numPed: linhaSelecionada.wb_numPed,
-                wb_itemPed: linhaSelecionada.wb_itemPed,
-                larguraBlanks,
-                espessuraBlanks,
-                comprimentoBlanks: infoTecnicas.WB_COMPRO,
-                wb_temFsc,
-                wb_numEtq: etiqueta.etiqueta
               });
 
               await axios.post('http://192.168.0.250:9002/apontamentoEtiqueta', {
@@ -235,7 +236,19 @@ function ApontamentoFinger() {
                         className: 'custom-toast-error'
                       });
             }
-          }
+        }else{
+          toast.error('Falta preencher quantidade ou recurso!', {
+            position: "bottom-center",
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            className: 'custom-toast-error'
+          });
+        }
+
         }else{
           toast.error('OP ja finalizada ou não encontrada', {
             position: "bottom-center",
