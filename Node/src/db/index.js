@@ -5,7 +5,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const { exec } = require('child_process');
-
+const path = require('path');
 
 
 
@@ -359,82 +359,90 @@ app.post('/frame', async (req, res) => {
 
 app.use(bodyParser.json());
 app.post('/printFinger', (req, res) => {
-    const { wb_numOrp, wb_numProd, wb_qtdProd, wb_dtApont, larguraBlanks, espessuraBlanks, comprimentoBlanks, wb_numPed, wb_itemPed, wb_temFsc, wb_numEtq, wb_nomeRec } = req.body;
+  const {
+      wb_numOrp,
+      wb_numProd,
+      wb_qtdProd,
+      wb_dtApont,
+      larguraBlanks,
+      espessuraBlanks,
+      comprimentoBlanks,
+      wb_numPed,
+      wb_itemPed,
+      wb_temFsc,
+      wb_numEtq,
+      wb_nomeRec
+  } = req.body;
 
-    const timestamp = Date.now(); // Gera um nome único para o ficheiro
-    //const filePath = `//192.168.0.250\\Meus Documentos\\Fabrica\\PCP\\Gabriel\\Projetos\\IntSapiens_QA\\IntSapiens_QA_GIT\\EtiquetaFinger\\etiqueta_${timestamp}.zpl`;
-    const filePath = `\\\\192.168.0.250\\Meus Documentos\\Fabrica\\PCP\\Gabriel\\Projetos\\IntSapiens_QA\\IntSapiens_QA_GIT\\EtiquetaFinger\\etiqueta_${timestamp}.zpl`;
+  const timestamp = Date.now();
+  const fileName = `etiqueta_${timestamp}.zpl`;
+  const filePath = `\\\\192.168.0.250\\Meus Documentos\\Fabrica\\PCP\\Gabriel\\Projetos\\IntSapiens_QA\\IntSapiens_QA_GIT\\EtiquetaFinger\\${fileName}`;
+  const processedDir = `\\\\192.168.0.250\\Meus Documentos\\Fabrica\\PCP\\Gabriel\\Projetos\\IntSapiens_QA\\IntSapiens_QA_GIT\\EtiquetaFinger\\Processado`;
+  const processedPath = path.join(processedDir, fileName);
 
-    // Criar o conteúdo ZPL
+  const zpl = 
+  `^XA
+  ^LS0
+  ^FWR
+  ^FO750,350^AN,60,60^FDMADESP      10 - BLANK^FS
+  ^FO550,40,^GB200,350,2^FS
+  ^FO715,48^AN,30,30^FDEspessura:^FS
+  ^FO560,130^AN,120,120^FD${espessuraBlanks}^FS
+  ^FO550,388^GB200,350,2^FS
+  ^FO715,393^AN,30,30^FDLargura:^FS
+  ^FO560,450^AN,120,120^FD${larguraBlanks}^FS
+  ^FO550,736^GB200,350,2^FS
+  ^FO715,740^AN,30,30^FDComprimento:^FS
+  ^FO560,780^AN,120,120^FD${comprimentoBlanks}^FS
+  ^FO352,40^GB200,350,2^FS
+  ^FO510,43^AN,30,30^FDOP:^FS
+  ^FO400,90^AN,80,80^FD${wb_numOrp}^FS
+  ^FO352,388^GB200,350,2^FS
+  ^FO510,395^AN,30,30^FDPedido-Item:^FS
+  ^FO400,430^AN,80,80^FD${wb_numPed}-${wb_itemPed}^FS
+  ^FO352,736^GB200,350,2^FS
+  ^FO510,739^AN,30,30^FDQtde:^FS
+  ^FO400,830^AN,100,100^FD${wb_qtdProd}^FS
+  ^FO0254,40^GB100,1046,2^FS
+  ^FO290,45^AN,30,30^FDData:^FS
+  ^FO290,130^AN,30,30^FD${wb_dtApont}^FS
+  ^FO290,480^AN,30,30^FD${wb_nomeRec}^FS
+  ^FO255,840^A0,80,80^FD${wb_temFsc}^FS;
+  ^FO136,40^GB120,1046,2^FS
+  ^FO210,45^AN,30,30^FDProduto:^FS
+  ^FO140,200^AN,100,100^FD${wb_numProd}^FS
+  ^FO77,1120^BY5^BCI,100,N,N,N^FD${wb_numEtq}^FS
+  ^FO60,60^BY5^BC,60,Y,N,N^FD${wb_numEtq}^FS
+  ^XZ`;
 
-          const zpl = 
-          `^XA
-          ^LS0
-          ^FWR
-          ^FO750,350^AN,60,60^FDMADESP      10 - BLANK^FS
-          ^FO550,40,^GB200,350,2^FS
-          ^FO715,48^AN,30,30^FDEspessura:^FS
-          ^FO560,130^AN,120,120^FD${espessuraBlanks}^FS
-          ^FO550,388^GB200,350,2^FS
-          ^FO715,393^AN,30,30^FDLargura:^FS
-          ^FO560,450^AN,120,120^FD${larguraBlanks}^FS
-          ^FO550,736^GB200,350,2^FS
-          ^FO715,740^AN,30,30^FDComprimento:^FS
-          ^FO560,780^AN,120,120^FD${comprimentoBlanks}^FS
-          ^FO352,40^GB200,350,2^FS
-          ^FO510,43^AN,30,30^FDOP:^FS
-          ^FO400,90^AN,80,80^FD${wb_numOrp}^FS
-          ^FO352,388^GB200,350,2^FS
-          ^FO510,395^AN,30,30^FDPedido-Item:^FS
-          ^FO400,430^AN,80,80^FD${wb_numPed}-${wb_itemPed}^FS
-          ^FO352,736^GB200,350,2^FS
-          ^FO510,739^AN,30,30^FDQtde:^FS
-          ^FO400,830^AN,100,100^FD${wb_qtdProd}^FS
-          ^FO0254,40^GB100,1046,2^FS
-          ^FO290,45^AN,30,30^FDData:^FS
-          ^FO290,130^AN,30,30^FD${wb_dtApont}^FS
-          ^FO290,480^AN,30,30^FD${wb_nomeRec}^FS
-          ^FO255,840^A0,80,80^FD${wb_temFsc}^FS;
-          ^FO136,40^GB120,1046,2^FS
-          ^FO210,45^AN,30,30^FDProduto:^FS
-          ^FO140,200^AN,100,100^FD${wb_numProd}^FS
-          ^FO77,1120^BY5^BCI,100,N,N,N^FD${wb_numEtq}^FS
-          ^FO60,60^BY5^BC,60,Y,N,N^FD${wb_numEtq}^FS
-          ^XZ`
-
-    try {
-      // Criar o arquivo
+  try {
       fs.writeFileSync(filePath, zpl, 'utf8');
       console.log("Arquivo gerado:", filePath);
 
-      // Nome da impressora
-      //const printerPath = '\\\\ZDesigner ZD220-203dpi ZPL';
       const printerPath = "\\\\Generic / Text Only";
-
-      // Enviar para a impressora e remover o arquivo após a impressão
-
+      //const printerPath = '\\\\ZDesigner ZD220-203dpi ZPL';
       exec(`print /D:"${printerPath}" "${filePath}"`, (error, stdout, stderr) => {
-        if (error) {
-          console.error('Erro ao imprimir:', error);
-          return;
-        }
-        console.log('Etiqueta enviada para impressão!');
-      });
-      /*exec(`COPY ${filePath} \\\\${printerName}`, (error) => {
-          if (!error) {
-              console.log("Etiqueta enviada para impressão!");
-              //fs.unlinkSync(filePath); // Remove o arquivo após impressão
-          } else {
-              console.error("Erro ao imprimir:", error);
+          if (error) {
+              console.error('Erro ao imprimir:', error);
+              return res.status(500).send({ error: "Erro ao enviar para a impressora" });
           }
-      });*/
 
-      res.send({ message: "Etiqueta enviada para impressão!" });
+          console.log('Etiqueta enviada para impressão!');
 
-      } catch (error) {
-          console.error("Erro ao criar o arquivo ZPL:", error);
-          res.status(500).send({ error: "Erro ao gerar o arquivo ZPL" });
-      }
+          try {
+              fs.renameSync(filePath, processedPath);
+              console.log('Arquivo movido para a pasta processado!');
+              return res.send({ message: "Etiqueta impressa e movida com sucesso!" });
+          } catch (err) {
+              console.error('Erro ao mover o arquivo:', err);
+              return res.status(500).send({ error: "Impressão concluída, mas falha ao mover o arquivo" });
+          }
+      });
+
+  } catch (error) {
+      console.error("Erro ao criar o arquivo ZPL:", error);
+      res.status(500).send({ error: "Erro ao gerar o arquivo ZPL" });
+  }
 });
 
 ////////////////////////////////////////////////////////////////
