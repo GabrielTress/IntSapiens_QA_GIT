@@ -29,7 +29,7 @@ function ApontamentoFinger() {
   const wb_process = 'N';
   const wb_dtApont = moment().format('DD-MM-YYYY HH:mm:ss');
   const navigate = useNavigate();
-
+  const [recurso, setRecurso] = useState('');
   const [infoTecnicas, setInfoTecnicas] = useState(null);
 
   const handleVoltar = () => {
@@ -265,6 +265,14 @@ function ApontamentoFinger() {
   return (
     <div className="container-apontamentoFinger">
       <h2>Apontamento Finger</h2>
+      <div className="selectRecurso">
+          <h3>Recurso:</h3>
+          <select className = "selectRecursoEtiquetaFinger" id="recurso" value={recurso} onChange={(e) => setRecurso(e.target.value)}>
+                <option value="">Selecione...</option>
+                <option value="Finger 01">Finger 01</option>
+                <option value="Finger 02">Finger 02</option>
+              </select>
+       </div>    
       <table className="tableFinger">
         <thead>
           <tr>
