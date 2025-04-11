@@ -362,7 +362,8 @@ app.post('/printFinger', (req, res) => {
     const { wb_numOrp, wb_numProd, wb_qtdProd, wb_dtApont, larguraBlanks, espessuraBlanks, comprimentoBlanks, wb_numPed, wb_itemPed, wb_temFsc, wb_numEtq, wb_nomeRec } = req.body;
 
     const timestamp = Date.now(); // Gera um nome único para o ficheiro
-    const filePath = `//192.168.0.250\\Meus Documentos\\Fabrica\\PCP\\Gabriel\\Projetos\\IntSapiens_QA\\IntSapiens_QA_GIT\\EtiquetaFinger\\etiqueta_${timestamp}.zpl`;
+    //const filePath = `//192.168.0.250\\Meus Documentos\\Fabrica\\PCP\\Gabriel\\Projetos\\IntSapiens_QA\\IntSapiens_QA_GIT\\EtiquetaFinger\\etiqueta_${timestamp}.zpl`;
+    const filePath = `\\\\192.168.0.250\\Meus Documentos\\Fabrica\\PCP\\Gabriel\\Projetos\\IntSapiens_QA\\IntSapiens_QA_GIT\\EtiquetaFinger\\etiqueta_${timestamp}.zpl`;
 
     // Criar o conteúdo ZPL
 
@@ -407,18 +408,26 @@ app.post('/printFinger', (req, res) => {
       console.log("Arquivo gerado:", filePath);
 
       // Nome da impressora
-      const printerName = "ZDesigner ZD220-203dpi ZPL";
-      //const printerName = "Generic / Text Only";
+      //const printerPath = '\\\\ZDesigner ZD220-203dpi ZPL';
+      const printerPath = "\\\\Generic / Text Only";
 
       // Enviar para a impressora e remover o arquivo após a impressão
-      exec(`COPY ${filePath} \\\\${printerName}`, (error) => {
+
+      exec(`print /D:"${printerPath}" "${filePath}"`, (error, stdout, stderr) => {
+        if (error) {
+          console.error('Erro ao imprimir:', error);
+          return;
+        }
+        console.log('Etiqueta enviada para impressão!');
+      });
+      /*exec(`COPY ${filePath} \\\\${printerName}`, (error) => {
           if (!error) {
               console.log("Etiqueta enviada para impressão!");
-              fs.unlinkSync(filePath); // Remove o arquivo após impressão
+              //fs.unlinkSync(filePath); // Remove o arquivo após impressão
           } else {
               console.error("Erro ao imprimir:", error);
           }
-      });
+      });*/
 
       res.send({ message: "Etiqueta enviada para impressão!" });
 

@@ -153,7 +153,7 @@ function ApontamentoFinger() {
         const quantidadeTotalProduzida = quantidadeJaProduzida + quantidadeProduzida;
         const quantidadeMaximaPermitida = quantidadeOriginal * 1.3;
 
-        if (wb_numRec && wb_numOrp && etiqueta.quantidade && recurso) {
+        if (wb_numRec && wb_numOrp && etiqueta.quantidade && recurso && Number(etiqueta.quantidade) > 0) {
           if (quantidadeTotalProduzida <= quantidadeMaximaPermitida) {
             try {
               await axios.post('http://192.168.0.250:9002/printFinger', {
