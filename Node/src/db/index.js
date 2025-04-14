@@ -419,8 +419,8 @@ app.post('/printFinger', (req, res) => {
       fs.writeFileSync(filePath, zpl, 'utf8');
       console.log("Arquivo gerado:", filePath);
 
-      const printerPath = "\\\\Generic / Text Only";
-      //const printerPath = '\\\\ZDesigner ZD220-203dpi ZPL';
+      //const printerPath = "\\\\Generic / Text Only";
+      const printerPath = '\\\\ZDesigner ZD220-203dpi ZPL';
       exec(`print /D:"${printerPath}" "${filePath}"`, (error, stdout, stderr) => {
           if (error) {
               console.error('Erro ao imprimir:', error);
