@@ -29,6 +29,11 @@ function HomePage() {
             onClick={() => navigate('/frame')}>
             Apontamento Nó Finger
           </button>
+          <button 
+            className="button-home" 
+            onClick={() => navigate('/inventario')}>
+            Inventário
+          </button>
 
         </div>
   );

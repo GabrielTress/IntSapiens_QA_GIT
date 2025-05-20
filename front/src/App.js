@@ -6,6 +6,7 @@ import Apontamento from './Apontamento/apontamento';
 import Componentes from './Componentes/componentes';
 import Repasse from './Repasse/repasse';
 import Frame from './Frame/frame';
+import Inventario from './Inventario/inventario';
 import ApontamentoFinger from './ApontamentoFinger/apontamentoFinger';
 import Importar from './Importar/importar';
 import './App.css';
@@ -25,6 +26,7 @@ const App = () => {
         <Route path="/frame" element={<Frame />} />
         <Route path="/importar-sapiens" element={<Importar />} />
         <Route path="/apontamentoFinger" element={<ApontamentoFinger/>}/>
+        <Route path="/inventario" element={<Inventario/>}/>
       </Routes>
     </Router>
   );

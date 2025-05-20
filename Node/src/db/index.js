@@ -376,8 +376,10 @@ app.post('/printFinger', (req, res) => {
 
   const timestamp = Date.now();
   const fileName = `etiqueta_${timestamp}.zpl`;
-  const filePath = `\\\\192.168.0.250\\Meus Documentos\\Fabrica\\PCP\\Gabriel\\Projetos\\IntSapiens_QA\\IntSapiens_QA_GIT\\EtiquetaFinger\\${fileName}`;
-  const processedDir = `\\\\192.168.0.250\\Meus Documentos\\Fabrica\\PCP\\Gabriel\\Projetos\\IntSapiens_QA\\IntSapiens_QA_GIT\\EtiquetaFinger\\Processado`;
+  //const filePath = `\\\\192.168.0.250\\Meus Documentos\\Fabrica\\PCP\\Gabriel\\Projetos\\IntSapiens_QA\\IntSapiens_QA_GIT\\EtiquetaFinger\\${fileName}`;
+  const filePath = `C:\\temp\\EtiquetaFinger\\${fileName}`;
+  //const processedDir = `\\\\192.168.0.250\\Meus Documentos\\Fabrica\\PCP\\Gabriel\\Projetos\\IntSapiens_QA\\IntSapiens_QA_GIT\\EtiquetaFinger\\Processado`;
+  const processedDir = `C:\\temp\\EtiquetaFinger\\Processado`;
   const processedPath = path.join(processedDir, fileName);
 
   const zpl = 
@@ -420,8 +422,9 @@ app.post('/printFinger', (req, res) => {
       console.log("Arquivo gerado:", filePath);
 
       //const printerPath = "\\\\Generic / Text Only";
-      const printerPath = '\\\\ZDesigner ZD220-203dpi ZPL';
-      exec(`print /D:"${printerPath}" "${filePath}"`, (error, stdout, stderr) => {
+      //const printerPath = '\\\\ZDesigner ZD220-203dpi ZPL';
+      //exec(`print /D:"${printerPath}" "${filePath}"`, (error, stdout, stderr) => {
+        exec(`print /D:"ZDesigner ZD220-203dpi ZPL" "${filePath}"`, (error, stdout, stderr) => {
           if (error) {
               console.error('Erro ao imprimir:', error);
               return res.status(500).send({ error: "Erro ao enviar para a impressora" });
@@ -530,6 +533,31 @@ app.get('/apontamentoEtiqueta', async (req, res) => {
   } catch (err) {
     console.error('Erro ao executar a consulta:', err);
     res.status(500).send('Erro ao obter dados');
+  } finally {
+    connection.release();
+  }
+});
+
+///INSERINDO INVENTARIO NO BANCO ///////////////////////
+app.post('/inventario', async (req, res) => {
+  const {wb_dtApont, wb_numEtq } = req.body;
+
+  const connection = await db.getConnection();
+  await connection.beginTransaction();
+  try {
+    
+    const insertSql = 'INSERT INTO INVENTARIO (wb_dtApont, wb_numEtq) VALUES (?, ?)';
+    await connection.query(insertSql, [wb_dtApont, wb_numEtq]);
+
+
+    // Commit a transação
+    await connection.commit();
+    res.status(200).json({ message: 'Apontamento realizado com sucesso!' });
+  } catch (err) {
+    // Rollback em caso de erro
+    await connection.rollback();
+    console.error('Erro ao realizar a inserção. Etiqueta ', wb_numEtq, ' ja lida anteriormente');
+    res.status(500).send('Erro ao realizar a inserção.');
   } finally {
     connection.release();
   }
