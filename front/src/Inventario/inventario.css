@@ -52,4 +52,6 @@
     height: 80;
     background-color: #6add70c0; /* Altere a cor de fundo, se desejado */
     color: rgb(0, 0, 0); /* Altere a cor do texto */
+    margin-top: 60px; /* Ajuste esse valor conforme o quanto quiser subir */
+    z-index: 9999;
   }

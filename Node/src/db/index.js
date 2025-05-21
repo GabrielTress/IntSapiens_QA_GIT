@@ -545,8 +545,8 @@ app.post('/inventario', async (req, res) => {
   const connection = await db.getConnection();
   await connection.beginTransaction();
   try {
-    
-    const insertSql = 'INSERT INTO INVENTARIO (wb_dtApont, wb_numEtq) VALUES (?, ?)';
+
+    const insertSql = 'INSERT INTO INVENTARIO (DATA, ETIQUETA) VALUES (?, ?)';
     await connection.query(insertSql, [wb_dtApont, wb_numEtq]);
 
 
@@ -560,6 +560,18 @@ app.post('/inventario', async (req, res) => {
     res.status(500).send('Erro ao realizar a inserção.');
   } finally {
     connection.release();
+  }
+});
+
+app.get('/inventario', async (req, res) => {
+  try {
+    const [results] = await db.query('SELECT * FROM INVENTARIO');
+    
+
+    res.json(results);
+  } catch (err) {
+    console.error('Erro ao executar a consulta:', err);
+    res.status(500).send('Erro ao obter dados');
   }
 });
 
