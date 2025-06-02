@@ -42,6 +42,25 @@ function Inventario() {
   };
 
   const handleApontar = async () => {
+    const numero = parseInt(wb_numEtq, 10);
+    if (isNaN(numero) || numero < 100000 || numero > 999999) {
+      toast.error('Etiqueta inválida!', {
+        position: "bottom-center",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        className: 'custom-toast-error'
+      });
+      setWb_numEtq('');
+      const audio = new Audio('./song_inventario_error.wav');
+      audio.play();
+      inputEtqRef.current?.focus();
+      return;
+    }
+  
     try {
       await axios.post('http://192.168.0.250:9002/inventario', {
         wb_dtApont,
@@ -60,8 +79,10 @@ function Inventario() {
       const audio = new Audio('./song_inventario.wav');
       audio.play();
       setWb_numEtq('');
-      inputEtqRef.current?.focus(); // Foca novamente após o apontamento
+      inputEtqRef.current?.focus();
+
     } catch (error) {
+
       console.error('Erro ao realizar o apontamento:', error);
       toast.error('Erro ao realizar apontamento', {
         position: "bottom-center",
@@ -74,7 +95,9 @@ function Inventario() {
         className: 'custom-toast-error'
       });
       setWb_numEtq('');
-      inputEtqRef.current?.focus(); // Refoca mesmo após erro
+      const audio = new Audio('./song_inventario_error.wav');
+      audio.play();
+      inputEtqRef.current?.focus();
     }
   };
 

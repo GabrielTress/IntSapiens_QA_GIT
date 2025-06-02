@@ -565,7 +565,7 @@ app.post('/inventario', async (req, res) => {
 
 app.get('/inventario', async (req, res) => {
   try {
-    const [results] = await db.query('SELECT * FROM INVENTARIO');
+    const [results] = await db.query('SELECT ETIQUETA FROM INVENTARIO');
     
 
     res.json(results);
