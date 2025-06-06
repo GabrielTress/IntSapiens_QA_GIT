@@ -5,11 +5,6 @@ import './home.css';
 
 function HomePage() {
   const navigate = useNavigate();
-/*          <button 
-            className="button-home" 
-            onClick={() => navigate('/importar-sapiens')}>
-            Importar/Atualizar Sapiens - PCP
-          </button>*/
   return (
     
         <div className='container-home'>
@@ -28,6 +23,16 @@ function HomePage() {
             className="button-home" 
             onClick={() => navigate('/frame')}>
             Apontamento Nó Finger
+          </button>
+          <button 
+            className="button-home" 
+            onClick={() => navigate('/consultaDesenho')}>
+            Consultar Desenho
+          </button>
+          <button 
+            className="button-home" 
+            onClick={() => navigate('/consultaPedido')}>
+            Consultar Pedido
           </button>
           <button 
             className="button-home" 

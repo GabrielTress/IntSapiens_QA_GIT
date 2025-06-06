@@ -84,13 +84,13 @@ const postConfirmaEtiquetaForSapiens = async () => {
         }
 
         await connection.commit();
-        console.log('Transação Componentes concluída com sucesso.');
+        console.log('Transação Confirmação de Etiqueta concluída com sucesso.');
     } catch (error) {
         if (connection) {
             await connection.rollback();
-            console.error('Transação Componentes revertida devido a um erro.');
+            console.error('Transação Confirmação de Etiqueta revertida devido a um erro.');
         }
-        console.error('Erro ao processar apontamentos:', error);
+        console.error('Erro ao processar apontamento de etiquetas:', error);
     } finally {
         if (connection) connection.release();
     }

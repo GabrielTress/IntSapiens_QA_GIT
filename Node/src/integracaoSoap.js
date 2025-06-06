@@ -5,6 +5,8 @@ const recursoService = require('./services/recursoService');
 const dadosProduto = require('./services/dadosProdutoService');
 const etiqueta = require('./services/etiquetaService');
 const postComponente = require('./services/postComponenteService');
+const obterEtiquetaFinger = require('./services/obterEtiquetaFingerService');
+const postConfirmaEtiquetaFinger = require('./services/postConfirmaEtq');
 
 // Função para obter a data e hora atual formatada
 const getCurrentDateTime = () => {

@@ -79,7 +79,7 @@ const getObterEtiquetaFingerFromSapiens = async () => {
     } catch (error) {
         if (connection) {
             await connection.rollback();
-            console.error('Transação revertida devido a erro.');
+            console.error('Transação ObterEtiqueta revertida devido a erro.');
         }
         console.error('Erro geral:', error);
     } finally {
