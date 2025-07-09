@@ -97,6 +97,10 @@ function Sequenciamento() {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [infoTecnicas, setInfoTecnicas] = useState(null); // Armazena os dados do banco
 
+
+//////checklist//////////////////
+
+
   // requisição para obter os dados técnicos do produto  
   const handleInfoTecnicas = () => {
     if (linhaSelecionada !== null) {
@@ -420,12 +424,14 @@ function Sequenciamento() {
       </div>
       <div className="button-containerCancel">
           <button className="cancel-button" onClick={() => setShowInfoModal(false)}>
-        Cancelar
-      </button>
+            Cancelar
+         </button>
           </div>
         </div>
       )}
       <ToastContainer />
+
+      
     </div>
   );
 }

@@ -374,6 +374,7 @@ app.post('/printFinger', (req, res) => {
   const zpl = `^XA
           ^LS0
           ^FWR
+          ^M15  
           ^FO750,350^A0,60,60^FDMADESP      10 - BLANK^FS
           ^FO550,40,^GB200,350,2^FS
           ^FO715,48^A0,30,30^FDEspessura:^FS
@@ -621,6 +622,71 @@ app.get('/inventario', async (req, res) => {
   } catch (err) {
     console.error('Erro ao executar a consulta:', err);
     res.status(500).send('Erro ao obter dados');
+  }
+});
+
+//////////////CHECKLIST//////////////////////////////////
+app.get('/checklistqualidade/:wb_numProd/:wb_numRec', async (req, res) => {
+
+  const connection = await db.getConnection();
+  try {
+    const { wb_numProd, wb_numRec } = req.params;
+
+    if (!wb_numProd || !wb_numRec) {
+      return res.status(400).send('Código do produto ou recurso não fornecido');
+    }
+
+    const [results] = await connection.query(
+      'SELECT WB_NUMEMP, WB_NUMREC, WB_NUMPROD, WB_PARAM, WB_VALORALVO, WB_TOLEMIN, WB_TOLEMAX, WB_FREQUENCIA, WB_TIPO, WB_SEQUENCIA FROM WB_ITENSCHECKLIST WHERE WB_NUMPROD = ? AND WB_NUMREC = ? ORDER BY WB_TIPO, WB_SEQUENCIA',
+      [wb_numProd, wb_numRec]
+    );
+
+    if (results.length === 0) {
+      return res.status(404).send('Produto não encontrado');
+    }
+
+    res.json(results);
+  } catch (err) {
+    console.error('Erro ao executar a consulta:', err);
+    res.status(500).send('Erro ao obter dados do produto');
+  }finally {
+    connection.release();
+  }
+});
+
+/////INSERINDO CHECKLIST NO BANCO/////////////////////////
+app.post('/saveChecklistQualidade', async (req, res) => {
+  const {wb_numEmp, checklist, wb_numProd, wb_numRec, wb_numOrp, wb_numOri, wb_numEtq, wb_dtApont, wb_process, wb_nomeRec} = req.body;
+
+  const connection = await db.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    for (const item of checklist) {
+      const {
+        parametro,
+        alvo,
+        minimo,
+        maximo,
+        valorDigitado
+      } = item;
+
+      const insertSql = `
+        INSERT INTO WB_REGISTROCHECKLIST
+        (WB_NUMEMP, WB_NUMREC, WB_NUMORP, WB_NUMORI, WB_NUMPRO, WB_NUMETQ, WB_PARAM, WB_VALORALVO, WB_TOLEMIN, WB_TOLEMAX, WB_RESULTADO, WB_NOMEREC, WB_DTAPONT, WB_PROCESS)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      await connection.query(insertSql, [wb_numEmp, wb_numRec, wb_numOrp, wb_numOri, wb_numProd,wb_numEtq, parametro, alvo, minimo, maximo, valorDigitado, wb_nomeRec, wb_dtApont, wb_process]);
+    }
+    await connection.commit();
+    res.status(200).send("Checklist salvo com sucesso.");
+  } catch (error) {
+    await connection.rollback();
+    console.error("Erro ao salvar checklist:", error);
+    res.status(500).send("Erro ao salvar checklist.");
+  } finally {
+    connection.release();
   }
 });
 

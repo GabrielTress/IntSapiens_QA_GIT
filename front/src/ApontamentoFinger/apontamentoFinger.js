@@ -114,7 +114,103 @@ function ApontamentoFinger() {
     }
   };
 
+    //checklist
+    const [showChecklist, setShowChecklist] = useState(false);
+    const [itensChecklist, setitensChecklist] = useState(null);
+    const [etiquetaParaProcessarIndex, setEtiquetaParaProcessarIndex] = useState(null);
   
+  
+    const handleChecklistQualidade = () => {
+      if (linhaSelecionada !== null) {
+        const wb_numProdSelecionado = linhaSelecionada.wb_numProd;
+        const wb_numRecSelecionado = linhaSelecionada.wb_numRec;
+        axios.get(`http://192.168.0.250:9002/checklistqualidade/${wb_numProdSelecionado}/${wb_numRecSelecionado}`)
+        .then(response => {
+          setitensChecklist(response.data); // agora será um array com todas as linhas
+          setShowChecklist(true);
+        })
+      } else {
+        toast.error('Produto sem inspeção cadastrada!', {
+          position: "bottom-center",
+          autoClose: 2500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          className: 'custom-toast-error'
+        });
+      }
+    };
+  
+  const [respostas, setRespostas] = useState({});
+  
+  const handleResposta = (index, valor) => {
+    setRespostas(prev => ({ ...prev, [index]: valor }));
+  };
+  
+  const handleSubmitRespostas = async () => {
+
+    const preenchido = itensChecklist.every((_, index) => {
+      const resposta = respostas[index];
+      return resposta !== undefined && resposta !== null && resposta !== '';
+    });
+    if (!preenchido) {
+      toast.error("Preencha todos os campos do checklist!", {
+        position: "bottom-center",
+        autoClose: 2000,
+        className: 'custom-toast-error'
+      });
+      return;
+    }
+    //setShowChecklist(false);
+    //setRespostas({});
+  
+    if (etiquetaParaProcessarIndex !== null) {
+      
+      handleProcessarEtiqueta(etiquetaParaProcessarIndex);
+      
+      try{
+        const checklistComRespostas = itensChecklist.map((item, index) => ({
+          parametro: item.WB_PARAM,
+          alvo: item.WB_VALORALVO,
+          minimo: item.WB_TOLEMIN,
+          maximo: item.WB_TOLEMAX,
+          valorDigitado: respostas[index]
+        }));
+            await axios.post('http://192.168.0.250:9002/saveChecklistQualidade', {
+                wb_numEmp,
+                wb_numProd,
+                wb_numRec,
+                wb_numOrp,
+                wb_numOri,
+                wb_numEtq: obterEtiqueta[etiquetaParaProcessarIndex]?.etiqueta,
+                checklist: checklistComRespostas,
+                wb_dtApont,
+                wb_process,
+                wb_nomeRec: recurso,
+            });
+      }catch(error){
+          toast.error("Erro ao gravar checklist!", {
+          position: "bottom-center",
+          autoClose: 2000,
+          className: 'custom-toast-error'
+        });
+      }
+      
+    }
+    setShowChecklist(false);
+    setEtiquetaParaProcessarIndex(null); // reset
+    //console.log('Respostas do utilizador:', respostas);
+  };
+
+  
+  const handleCancelar = () => {
+    setShowChecklist(false);
+    setRespostas({});
+  };
+
+  /////////////////////////////////////checklist 
 
   const handleProcessarEtiqueta = async (index) => {
     const etiqueta = obterEtiqueta[index];
@@ -169,20 +265,6 @@ function ApontamentoFinger() {
                 wb_numEtq: etiqueta.etiqueta,
                 wb_nomeRec: recurso
               }, { responseType: 'text' });
-              /*await axios.post('http://192.168.0.250:9002/printFinger', {
-                wb_numOrp,
-                wb_numProd,
-                wb_qtdProd: etiqueta.quantidade,
-                wb_dtApont,
-                wb_numPed: linhaSelecionada.wb_numPed,
-                wb_itemPed: linhaSelecionada.wb_itemPed,
-                larguraBlanks,
-                espessuraBlanks,
-                comprimentoBlanks: infoTecnicas.WB_COMPRO,
-                wb_temFsc,
-                wb_numEtq: etiqueta.etiqueta,
-                wb_nomeRec: recurso
-              });*/
 
               if (!window.BrowserPrint) {
                 toast.error("Zebra Browser Print não está disponível.",{
@@ -341,6 +423,9 @@ function ApontamentoFinger() {
                 <option value="Finger 01">Finger 01</option>
                 <option value="Finger 02">Finger 02</option>
               </select>
+              <button className="button" onClick={handleVoltar}>
+                  Voltar
+             </button>
        </div>    
       <table className="tableFinger">
         <thead>
@@ -371,7 +456,18 @@ function ApontamentoFinger() {
               <td>
                 <FaPrint
                   className="print-icon"
-                  onClick={() => handleProcessarEtiqueta(index)}
+                  onClick={() => {
+                    if (item.processado === 'N') {
+                      setEtiquetaParaProcessarIndex(index);
+                      handleChecklistQualidade();
+                    } else {
+                      toast.error('Etiqueta já processada!', {
+                        position: "bottom-center",
+                        autoClose: 2000,
+                        className: 'custom-toast-error'
+                      });
+                    }
+                  }}
                   style={{ cursor: 'pointer', color: item.processado === 'S' ? '#999' : '#000' }}
                   title={item.processado === 'S' ? "Já processado" : "Imprimir etiqueta"}
                 />
@@ -381,12 +477,71 @@ function ApontamentoFinger() {
         </tbody>
       </table>
       <div className="button-container">
-        <button className="button" onClick={handleVoltar}>
-          Voltar
-        </button>
-        <ToastContainer />
+
+      </div>
+      {showChecklist && (
+  <div className="modal-container-checklist">
+    <div className="modal-content-checklist">
+      <h3>CheckList Qualidade</h3>
+
+      <table className="tabela-checklist">
+        <thead>
+          <tr>
+            <th>Parâmetro</th>
+            <th>Resultado</th>
+            <th>Alvo</th>
+            <th>Mínimo</th>
+            <th>Máximo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Array.isArray(itensChecklist) && itensChecklist.map((item, index) => (
+            <tr key={index}>
+              <td>{item.WB_PARAM}</td>
+              <td>
+                {item.WB_TIPO === 'NUMERICO' ? (
+                  <input
+                    type="number"
+                    value={respostas[index] || ''}
+                    onChange={(e) => handleResposta(index, e.target.value)}
+                  />
+                ) : (
+                <div className="ok-nok-buttons">
+                  <button
+                    type="button"
+                    className={respostas[index] === 'OK' ? 'selected' : ''}
+                    onClick={() => handleResposta(index, 'OK')}
+                  >
+                    OK
+                  </button>
+                  <button
+                    type="button"
+                    className={respostas[index] === 'NOK' ? 'selected nok' : 'nok'}
+                    onClick={() => handleResposta(index, 'NOK')}
+                  >
+                    NOK
+                  </button>
+                </div>
+                )}
+              </td>
+              <td>{item.WB_VALORALVO}</td>
+              <td>{item.WB_TOLEMIN}</td>
+              <td>{item.WB_TOLEMAX}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div className="button-container-checklist">
+        <button onClick={handleSubmitRespostas}>Salvar</button>
+        <button className="cancel-button" onClick={() => handleCancelar()}>Cancelar</button>
       </div>
     </div>
+  </div>
+)}
+<ToastContainer />
+    </div>
+    
   );
 }
 
