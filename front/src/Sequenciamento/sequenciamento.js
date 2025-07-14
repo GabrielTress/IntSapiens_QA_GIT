@@ -264,7 +264,23 @@ function Sequenciamento() {
       }
     };
 
-
+    const handleAbrirRepasse = () => {
+      if (linhaSelecionada !== null) {
+        navigate('/repasse', { state: { linha: dadosFiltrados[linhaSelecionada], filtroID: inputId } });
+      } else {
+        //alert("Selecione uma linha antes de realizar o apontamento.");
+        toast.error('Selecione uma linha!', {
+          position: "bottom-center",
+          autoClose: 2500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          className: 'custom-toast-error'
+        });
+      }
+    };
 
   
 
@@ -344,6 +360,11 @@ function Sequenciamento() {
           className="button"
           onClick={handleAbrirPedido}>
           Pedido/Word
+        </button>
+        <button 
+          className="button"
+          onClick={handleAbrirRepasse}>
+          Repasse
         </button>
         <button 
           className="button"

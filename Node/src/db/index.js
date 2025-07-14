@@ -141,7 +141,7 @@ app.get('/infoProdutos/:wb_numProd', async (req, res) => {
     }
 
     const [results] = await db.query(
-      'SELECT WB_NUMPROD, WB_DESPRO, WB_DESCPL, WB_DESDER, WB_PROBLK, WB_DESBLK, WB_COMPRO, WB_ESPPRO, WB_LARPRO FROM WB_DADOSPRODUTO WHERE WB_NUMPROD = ?',
+      'SELECT WB_NUMPROD, WB_CODFAM, WB_DESPRO, WB_DESCPL, WB_DESDER, WB_PROBLK, WB_DESBLK, WB_COMPRO, WB_ESPPRO, WB_LARPRO FROM WB_DADOSPRODUTO WHERE WB_NUMPROD = ?',
       [wb_numProd]
     );
 
