@@ -32,6 +32,8 @@ const Repasse = () => {
             console.error('Erro ao buscar informações técnicas:', error);
           });
     };
+
+    //executar infotecnicas
     useEffect(() => {
       handleInfoTecnicas();
     }, []);
@@ -41,43 +43,26 @@ const Repasse = () => {
       const textMedidas = infoTecnicas?.WB_DESCPL || "";
       const partMedidas = textMedidas.split('X');
       if (partMedidas[0]) {
-        const espessura = partMedidas[0].trim().replace(',', '.');
+        const espessura = partMedidas[0].trim().replace("'", '').replace(',', '.');
         setEspessuraAut(espessura);
       }
       if (partMedidas[1]) {
-        const largura = partMedidas[1].trim().replace(',', '.');
+        const largura = partMedidas[1].trim().replace("'", '').replace(',', '.');
         setLarguraAut(largura);
       }
     }, [infoTecnicas]); // só quando infoTecnicas mudar
 
 
-  const [formData, setFormData] = useState({
-
-    op: '',
-    perfil: '',
-    largura: '',
-    espessura: '',
-    recurso: ''
-  });
-
-
-
-
-  const handleInputChange = (e) => {
-    const { id, value } = e.target;
-    setFormData({ ...formData, [id]: value });
-  };
 
   const handleClear = () => {
-    setFormData({
-      op: '',
-      perfil: '',
-      largura: '',
-      espessura: '',
-      recurso: ''
-    });
-    setQuantidadeTotal(0);
+    setOp('');
+    setPerfil('');
+    setLinha('');
+    setEspessuraAut('');
+    setLarguraAut('');
+    setQuantidadeTotal(0)
   };
+
   const [quantidadeTotal, setQuantidadeTotal] = useState(0);
 
   const linhaMap = {
@@ -85,7 +70,6 @@ const Repasse = () => {
     "18": "Pintura 2"
   };
 
-//console.log('linha:', linhaSelecionada?.wb_numRec);
 
   useEffect(() => {
     if (linhaSelecionada?.wb_numRec) {
@@ -95,49 +79,49 @@ const Repasse = () => {
         setLinha(linhaAuto);
       }
     }
-  }, [linha]);
+  }, [linhaSelecionada]);
 
   const perfilMap = {
-    "600001": "FLAT", // Último valor sempre que há duplicados
-    "600002": "SPLIT",
-    "111111": "SPLIT MACHO",
-    "222222": "SPLIT FEMEA",
-    "600003": "CROW",
-    "600004": "CASING",
-    "600005": "BOARDS",
-    "600006": "LINERS",
-    "600007": "LAMBRIL",
-    "600008": "STOP",
-    "600009": "QUARTER ROUND",
-    "600010": "PAINEL", // último valor no caso de duplicados
-    "600011": "PAINEL",
-    "600012": "BASE",
-    "600013": "STOOL",
-    "600101": "FLAT",
-    "600102": "SPLIT",
-    "600103": "CROW",
-    "600104": "CASING",
-    "600105": "BOARDS",
-    "600106": "LINERS",
-    "600107": "LAMBRIL",
-    "600108": "STOP",
-    "600109": "QUARTER ROUND",
-    "600110": "PAINEL",
-    "600112": "BASE",
-    "600113": "STOOL",
-    "600201": "FLAT MDF",
-    "600202": "SPLT MDF",
-    "600203": "CROW MDF",
-    "600204": "CASING MDF",
-    "600205": "BOARDS MDF",
-    "600206": "LINERS MDF",
-    "600207": "LAMBRIL MDF",
-    "600208": "STOP MDF",
-    "600209": "QUARTER ROUND MDF",
-    "600210": "MOLDURA QUADRO MDF",
-    "600211": "PAINEL MDF",
-    "600212": "BASE MDF",
-    "600213": "STOOL MDF"
+    "600001": "Flat", // Último valor sempre que há duplicados
+    "600002": "Splt",
+    "111111": "Split Macho",
+    "222222": "Split Fêmea",
+    "600003": "Crow",
+    "600004": "Casing",
+    "600005": "Boards",
+    "600006": "Liners",
+    "600007": "Lambril",
+    "600008": "Stop",
+    "600009": "Quarter Round",
+    "600010": "Moldura Quadro", // último valor no caso de duplicados
+    "600011": "Painel",
+    "600012": "Base",
+    "600013": "Stool",
+    "600101": "Flat",
+    "600102": "Splt",
+    "600103": "Crow",
+    "600104": "Casing",
+    "600105": "Boards",
+    "600106": "Liners",
+    "600107": "Lambril",
+    "600108": "Stop",
+    "600109": "Quarter Round",
+    "600110": "Painel",
+    "600112": "Base",
+    "600113": "Stool",
+    "600201": "MDF Flat",
+    "600202": "MDF Splt ",
+    "600203": "MDF Crow",
+    "600204": "MDF Casing",
+    "600205": "MDF Boards",
+    "600206": "MDF Liners",
+    "600207": "MDF Lambril",
+    "600208": "MDF Stop",
+    "600209": "MDF Quarter Round",
+    "600210": "MDF Moldura Quadro ",
+    "600211": "MDF Painel",
+    "600212": "MDF Base",
+    "600213": "MDF Stool"
   };
   useEffect(() => {
     if (infoTecnicas?.WB_CODFAM) {
@@ -168,7 +152,8 @@ const Repasse = () => {
   const btt15 = "ARREPIADO";
   const btt16 = "BATIDA";
   const btt17 = "MORDIDA";
-  const btt18 = "OUTROS";
+  const btt18 = "RESSALTO EMENDA FINGER";
+  const btt19 = "OUTROS";
 
   var date = new Date(Date.now());
   const qtd = 1;
@@ -176,7 +161,7 @@ const Repasse = () => {
   const navigate = useNavigate();
 
   const handleButtonClick = (buttonNumber) => {
-    if (buttonNumber === 1 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && formData.recurso !== "") {
+    if (buttonNumber === 1 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
         motivo: btt1,
@@ -186,17 +171,18 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: formData.recurso
+        recurso: linha
       }).then((response) => {
         console.log(response);
         toast.success('Apontamento OK', {
-          position: "bottom-right",
+          position: "bottom-center",
           autoClose: 1000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          className: 'custom-toast-sucess',
         });
       // Atualizar a quantidade total após a inserção
        setQuantidadeTotal(response.data.quantidadeTotal);
@@ -204,7 +190,7 @@ const Repasse = () => {
         console.log(err);
       });
 
-    } else if (buttonNumber === 2 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && formData.recurso !== "") {
+    } else if (buttonNumber === 2 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
         motivo: btt2,
@@ -214,17 +200,18 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: formData.recurso
+        recurso: linha
       }).then((response) => {
         console.log(response);
         toast.success('Apontamento OK', {
-          position: "bottom-right",
+          position: "bottom-center",
           autoClose: 1000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          className: 'custom-toast-sucess',
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
@@ -232,7 +219,7 @@ const Repasse = () => {
         console.log(err);
       });
       
-    }else if (buttonNumber === 3 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && formData.recurso !== "") {
+    }else if (buttonNumber === 3 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
         motivo: btt3,
@@ -242,17 +229,18 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: formData.recurso
+        recurso: linha
       }).then((response) => {
         console.log(response);
         toast.success('Apontamento OK', {
-          position: "bottom-right",
+          position: "bottom-center",
           autoClose: 1000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          className: 'custom-toast-sucess',
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
@@ -260,7 +248,7 @@ const Repasse = () => {
         console.log(err);
       });
       
-    }else if (buttonNumber === 4 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && formData.recurso !== "") {
+    }else if (buttonNumber === 4 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
         motivo: btt4,
@@ -270,17 +258,18 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: formData.recurso
+        recurso: linha
       }).then((response) => {
         console.log(response);
         toast.success('Apontamento OK', {
-          position: "bottom-right",
+          position: "bottom-center",
           autoClose: 1000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          className: 'custom-toast-sucess',
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
@@ -288,7 +277,7 @@ const Repasse = () => {
         console.log(err);
       });
       
-    }else if (buttonNumber === 5 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && formData.recurso !== "") {
+    }else if (buttonNumber === 5 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
         motivo: btt5,
@@ -298,17 +287,18 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: formData.recurso
+        recurso: linha
       }).then((response) => {
         console.log(response);
         toast.success('Apontamento OK', {
-          position: "bottom-right",
+          position: "bottom-center",
           autoClose: 1000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          className: 'custom-toast-sucess',
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
@@ -316,7 +306,7 @@ const Repasse = () => {
         console.log(err);
       });
       
-    } else if (buttonNumber === 6 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && formData.recurso !== "") {
+    } else if (buttonNumber === 6 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
         motivo: btt6,
@@ -326,17 +316,18 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: formData.recurso
+        recurso: linha
       }).then((response) => {
         console.log(response);
         toast.success('Apontamento OK', {
-          position: "bottom-right",
+          position: "bottom-center",
           autoClose: 1000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          className: 'custom-toast-sucess',
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
@@ -345,7 +336,7 @@ const Repasse = () => {
       });
       
     }
-    else if (buttonNumber === 7 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && formData.recurso !== "") {
+    else if (buttonNumber === 7 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
         motivo: btt7,
@@ -355,17 +346,18 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: formData.recurso
+        recurso: linha
       }).then((response) => {
         console.log(response);
         toast.success('Apontamento OK', {
-          position: "bottom-right",
+          position: "bottom-center",
           autoClose: 1000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          className: 'custom-toast-sucess',
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
@@ -373,7 +365,7 @@ const Repasse = () => {
         console.log(err);
       });
       
-    }else if (buttonNumber === 8 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && formData.recurso !== "") {
+    }else if (buttonNumber === 8 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
         motivo: btt8,
@@ -383,17 +375,18 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: formData.recurso
+        recurso: linha
       }).then((response) => {
         console.log(response);
         toast.success('Apontamento OK', {
-          position: "bottom-right",
+          position: "bottom-center",
           autoClose: 1000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          className: 'custom-toast-sucess',
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
@@ -401,7 +394,7 @@ const Repasse = () => {
         console.log(err);
       });
       
-    }else if (buttonNumber === 9 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && formData.recurso !== "") {
+    }else if (buttonNumber === 9 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
         motivo: btt9,
@@ -411,17 +404,18 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: formData.recurso
+        recurso: linha
       }).then((response) => {
         console.log(response);
         toast.success('Apontamento OK', {
-          position: "bottom-right",
+          position: "bottom-center",
           autoClose: 1000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          className: 'custom-toast-sucess',
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
@@ -429,7 +423,7 @@ const Repasse = () => {
         console.log(err);
       });
       
-    }else if (buttonNumber === 10 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && formData.recurso !== "") {
+    }else if (buttonNumber === 10 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
         motivo: btt10,
@@ -439,17 +433,18 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: formData.recurso
+        recurso: linha
       }).then((response) => {
         console.log(response);
         toast.success('Apontamento OK', {
-          position: "bottom-right",
+          position: "bottom-center",
           autoClose: 1000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          className: 'custom-toast-sucess',
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
@@ -457,7 +452,7 @@ const Repasse = () => {
         console.log(err);
       });
       
-    } else if (buttonNumber === 11 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && formData.recurso !== "") {
+    } else if (buttonNumber === 11 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
         motivo: btt11,
@@ -467,17 +462,18 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: formData.recurso
+        recurso: linha
       }).then((response) => {
         console.log(response);
         toast.success('Apontamento OK', {
-          position: "bottom-right",
+          position: "bottom-center",
           autoClose: 1000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          className: 'custom-toast-sucess',
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
@@ -485,7 +481,7 @@ const Repasse = () => {
         console.log(err);
       });
       
-    } else if (buttonNumber === 12 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && formData.recurso !== "") {
+    } else if (buttonNumber === 12 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
         motivo: btt12,
@@ -495,17 +491,18 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: formData.recurso
+        recurso: linha
       }).then((response) => {
         console.log(response);
         toast.success('Apontamento OK', {
-          position: "bottom-right",
+          position: "bottom-center",
           autoClose: 1000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          className: 'custom-toast-sucess',
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
@@ -513,7 +510,7 @@ const Repasse = () => {
         console.log(err);
       });
       
-    }else if (buttonNumber === 13 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && formData.recurso !== "") {
+    }else if (buttonNumber === 13 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
         motivo: btt13,
@@ -523,17 +520,18 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: formData.recurso
+        recurso: linha
       }).then((response) => {
         console.log(response);
         toast.success('Apontamento OK', {
-          position: "bottom-right",
+          position: "bottom-center",
           autoClose: 1000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          className: 'custom-toast-sucess',
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
@@ -541,7 +539,7 @@ const Repasse = () => {
         console.log(err);
       });
       
-    } else if (buttonNumber === 14 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && formData.recurso !== "") {
+    } else if (buttonNumber === 14 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
         motivo: btt14,
@@ -551,17 +549,18 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: formData.recurso
+        recurso: linha
       }).then((response) => {
         console.log(response);
         toast.success('Apontamento OK', {
-          position: "bottom-right",
+          position: "bottom-center",
           autoClose: 1000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          className: 'custom-toast-sucess',
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
@@ -569,7 +568,7 @@ const Repasse = () => {
         console.log(err);
       });
       
-    }else if (buttonNumber === 15 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && formData.recurso !== "") {
+    }else if (buttonNumber === 15 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
         motivo: btt15,
@@ -579,17 +578,18 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: formData.recurso
+        recurso: linha
       }).then((response) => {
         console.log(response);
         toast.success('Apontamento OK', {
-          position: "bottom-right",
+          position: "bottom-center",
           autoClose: 1000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          className: 'custom-toast-sucess',
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
@@ -597,7 +597,7 @@ const Repasse = () => {
         console.log(err);
       });
       
-    } else if (buttonNumber === 16 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && formData.recurso !== "") {
+    } else if (buttonNumber === 16 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
         motivo: btt16,
@@ -607,17 +607,18 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: formData.recurso
+        recurso: linha
       }).then((response) => {
         console.log(response);
         toast.success('Apontamento OK', {
-          position: "bottom-right",
+          position: "bottom-center",
           autoClose: 1000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          className: 'custom-toast-sucess',
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
@@ -625,7 +626,7 @@ const Repasse = () => {
         console.log(err);
       });
       
-    } else if (buttonNumber === 17 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && formData.recurso !== "") {
+    } else if (buttonNumber === 17 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
         motivo: btt17,
@@ -635,17 +636,18 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: formData.recurso
+        recurso: linha
       }).then((response) => {
         console.log(response);
         toast.success('Apontamento OK', {
-          position: "bottom-right",
+          position: "bottom-center",
           autoClose: 1000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          className: 'custom-toast-sucess',
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
@@ -653,7 +655,7 @@ const Repasse = () => {
         console.log(err);
       });
       
-    } else if (buttonNumber === 18 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && formData.recurso !== "") {
+    } else if (buttonNumber === 18 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
         motivo: btt18,
@@ -663,33 +665,67 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: formData.recurso
+        recurso: linha
       }).then((response) => {
         console.log(response);
         toast.success('Apontamento OK', {
-          position: "bottom-right",
+          position: "bottom-center",
           autoClose: 1000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          className: 'custom-toast-sucess',
         });
+        
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
       }).catch((err) => {
         console.log(err);
       });
       
-    } else{
+    } else if (buttonNumber === 19 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
+      Axios.post("http://192.168.0.250:9002/Repasse", {
+        op: op,
+        motivo: btt18,
+        data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
+        quantidade: qtd,
+        perfil: perfil,
+        espessura: espessuraAut,
+        largura: larguraAut,
+        status_largura: verificaValores(),
+        recurso: linha
+      }).then((response) => {
+        console.log(response);
+        toast.success('Apontamento OK', {
+          position: "bottom-center",
+          autoClose: 1000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          className: 'custom-toast-sucess',
+        });
+        
+      // Atualizar a quantidade total após a inserção
+      setQuantidadeTotal(response.data.quantidadeTotal);
+      }).catch((err) => {
+        console.log(err);
+      })
+    }
+    
+    else{
         toast.error('Preencher todos os valores!', {
-        position: "bottom-right",
+        position: "bottom-center",
         autoClose: 3000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
+        className: 'custom-toast-error',
       });
     };
   
@@ -720,6 +756,7 @@ const Repasse = () => {
           <input className = "inputRepasse" 
               id="op" type="number" placeholder="OP" 
               value={op} 
+              disabled
               onChange={(e) => setOp(e.target.value)}
           />
         </div>
@@ -747,11 +784,11 @@ const Repasse = () => {
         </div>
         <div>
           <label className = "labelRepasse" htmlFor="espessura">Espessura</label>
-          <input className = "inputRepasse" id="espessura" type="number" placeholder="Espessura" value={espessuraAut} onChange={(e) => setEspessuraAut(e.target.value)} />
+          <input className = "inputRepasse" id="espessura" type="number" placeholder="Espessura" value={espessuraAut} disabled onChange={(e) => setEspessuraAut(e.target.value)} />
         </div>
         <div>
           <label className = "labelRepasse" htmlFor="largura">Largura</label>
-          <input className = "inputRepasse"  id="largura" type="number" placeholder="Largura" value={larguraAut} onChange={(e => setLarguraAut(e.target.value))} />
+          <input className = "inputRepasse"  id="largura" type="number" placeholder="Largura" value={larguraAut} disabled onChange={(e => setLarguraAut(e.target.value))} />
         </div>
         <button className="clear-buttonRepasse" onClick={handleClear}>Limpar</button>
         <button className="voltar-buttonRepasse" onClick={() => navigate('/sequenciamento', { state: { filtroID } })}>Voltar</button>
@@ -775,9 +812,10 @@ const Repasse = () => {
         <button className = "buttonRepasse" onClick={() => handleButtonClick(16)}>{btt16}</button>
         <button className = "buttonRepasse" onClick={() => handleButtonClick(17)}>{btt17}</button>
         <button className = "buttonRepasse" onClick={() => handleButtonClick(18)}>{btt18}</button>
+        <button className = "buttonRepasse" onClick={() => handleButtonClick(19)}>{btt19}</button>
       </div>
       <div className="label-container">
-        <label className = "labelRepasse">A OP {formData.op} possui {quantidadeTotal} peças apontadas.</label>
+        <label className = "labelRepasse">A OP {op} possui {quantidadeTotal} peças apontadas.</label>
       </div>
       <ToastContainer />
     </div>
