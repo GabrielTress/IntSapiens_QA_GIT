@@ -16,9 +16,12 @@ const Repasse = () => {
   const [op, setOp] = useState(linhaSelecionada?.wb_numOrp || '');
   const [infoTecnicas, setInfoTecnicas] = useState(null);
   const [perfil, setPerfil] = useState('');
+  const [quantidade, setQuantidade] = useState('');
   const [linha, setLinha] = useState('');
   const [espessuraAut, setEspessuraAut] = useState('');
   const [larguraAut, setLarguraAut] = useState('');
+  const navigate = useNavigate();
+  var date = new Date(Date.now());
 
     // requisição para obter os dados técnicos do produto  
     const handleInfoTecnicas = () => {
@@ -53,7 +56,6 @@ const Repasse = () => {
     }, [infoTecnicas]); // só quando infoTecnicas mudar
 
 
-
   const handleClear = () => {
     setOp('');
     setPerfil('');
@@ -83,7 +85,7 @@ const Repasse = () => {
 
   const perfilMap = {
     "600001": "Flat", // Último valor sempre que há duplicados
-    "600002": "Splt",
+    "600002": "Split",
     "111111": "Split Macho",
     "222222": "Split Fêmea",
     "600003": "Crow",
@@ -98,7 +100,7 @@ const Repasse = () => {
     "600012": "Base",
     "600013": "Stool",
     "600101": "Flat",
-    "600102": "Splt",
+    "600102": "Split",
     "600103": "Crow",
     "600104": "Casing",
     "600105": "Boards",
@@ -106,11 +108,12 @@ const Repasse = () => {
     "600107": "Lambril",
     "600108": "Stop",
     "600109": "Quarter Round",
-    "600110": "Painel",
+    "600110": "Moldura Quadro",
+    "600111": "Painel",
     "600112": "Base",
     "600113": "Stool",
     "600201": "MDF Flat",
-    "600202": "MDF Splt ",
+    "600202": "MDF Split ",
     "600203": "MDF Crow",
     "600204": "MDF Casing",
     "600205": "MDF Boards",
@@ -133,6 +136,31 @@ const Repasse = () => {
     }
   }, [infoTecnicas]);
 
+    // VALIDA SE A OP É PERFILADA
+    const validaPerfilado = async (op) => {
+      try {
+        const response = await axios.get('http://192.168.0.250:9002/consultaPerfiladeira11', {
+          params: { wb_numOrp: op } // ← importante: nome do parâmetro deve ser wb_numOrp
+        });
+  
+        const encontrado = response.data.some(item => item.WB_NUMORP == op);
+        return encontrado;
+      } catch (error) {
+        console.error('Erro ao buscar:', error);
+        return false;
+      }
+    };
+      // Só consulta quando `op` muda
+  useEffect(() => {
+    const verificar = async () => {
+      if (op) {
+        const isPerfilada = await validaPerfilado(op);
+        setQuantidade(isPerfilada ? 2 : 1);
+      }
+    };
+
+    verificar();
+  }, [op]); // ← escuta mudanças na OP
 
 
   const btt1 = "LINHA DE COLA ABERTA";
@@ -155,25 +183,23 @@ const Repasse = () => {
   const btt18 = "RESSALTO EMENDA FINGER";
   const btt19 = "OUTROS";
 
-  var date = new Date(Date.now());
-  const qtd = 1;
+ 
 
-  const navigate = useNavigate();
 
   const handleButtonClick = (buttonNumber) => {
+
     if (buttonNumber === 1 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
         motivo: btt1,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
-        quantidade: qtd,
+        quantidade: quantidade,
         perfil: perfil,
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha
       }).then((response) => {
-        console.log(response);
         toast.success('Apontamento OK', {
           position: "bottom-center",
           autoClose: 1000,
@@ -195,14 +221,13 @@ const Repasse = () => {
         op: op,
         motivo: btt2,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
-        quantidade: qtd,
+        quantidade: quantidade,
         perfil: perfil,
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha
       }).then((response) => {
-        console.log(response);
         toast.success('Apontamento OK', {
           position: "bottom-center",
           autoClose: 1000,
@@ -224,14 +249,13 @@ const Repasse = () => {
         op: op,
         motivo: btt3,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
-        quantidade: qtd,
+        quantidade: quantidade,
         perfil: perfil,
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha
       }).then((response) => {
-        console.log(response);
         toast.success('Apontamento OK', {
           position: "bottom-center",
           autoClose: 1000,
@@ -253,14 +277,13 @@ const Repasse = () => {
         op: op,
         motivo: btt4,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
-        quantidade: qtd,
+        quantidade: quantidade,
         perfil: perfil,
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha
       }).then((response) => {
-        console.log(response);
         toast.success('Apontamento OK', {
           position: "bottom-center",
           autoClose: 1000,
@@ -282,14 +305,13 @@ const Repasse = () => {
         op: op,
         motivo: btt5,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
-        quantidade: qtd,
+        quantidade: quantidade,
         perfil: perfil,
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha
       }).then((response) => {
-        console.log(response);
         toast.success('Apontamento OK', {
           position: "bottom-center",
           autoClose: 1000,
@@ -311,14 +333,13 @@ const Repasse = () => {
         op: op,
         motivo: btt6,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
-        quantidade: qtd,
+        quantidade: quantidade,
         perfil: perfil,
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha
       }).then((response) => {
-        console.log(response);
         toast.success('Apontamento OK', {
           position: "bottom-center",
           autoClose: 1000,
@@ -341,14 +362,13 @@ const Repasse = () => {
         op: op,
         motivo: btt7,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
-        quantidade: qtd,
+        quantidade: quantidade,
         perfil: perfil,
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha
       }).then((response) => {
-        console.log(response);
         toast.success('Apontamento OK', {
           position: "bottom-center",
           autoClose: 1000,
@@ -370,14 +390,13 @@ const Repasse = () => {
         op: op,
         motivo: btt8,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
-        quantidade: qtd,
+        quantidade: quantidade,
         perfil: perfil,
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha
       }).then((response) => {
-        console.log(response);
         toast.success('Apontamento OK', {
           position: "bottom-center",
           autoClose: 1000,
@@ -399,14 +418,13 @@ const Repasse = () => {
         op: op,
         motivo: btt9,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
-        quantidade: qtd,
+        quantidade: quantidade,
         perfil: perfil,
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha
       }).then((response) => {
-        console.log(response);
         toast.success('Apontamento OK', {
           position: "bottom-center",
           autoClose: 1000,
@@ -428,14 +446,13 @@ const Repasse = () => {
         op: op,
         motivo: btt10,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
-        quantidade: qtd,
+        quantidade: quantidade,
         perfil: perfil,
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha
       }).then((response) => {
-        console.log(response);
         toast.success('Apontamento OK', {
           position: "bottom-center",
           autoClose: 1000,
@@ -457,14 +474,13 @@ const Repasse = () => {
         op: op,
         motivo: btt11,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
-        quantidade: qtd,
+        quantidade: quantidade,
         perfil: perfil,
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha
       }).then((response) => {
-        console.log(response);
         toast.success('Apontamento OK', {
           position: "bottom-center",
           autoClose: 1000,
@@ -486,14 +502,13 @@ const Repasse = () => {
         op: op,
         motivo: btt12,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
-        quantidade: qtd,
+        quantidade: quantidade,
         perfil: perfil,
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha
       }).then((response) => {
-        console.log(response);
         toast.success('Apontamento OK', {
           position: "bottom-center",
           autoClose: 1000,
@@ -515,14 +530,13 @@ const Repasse = () => {
         op: op,
         motivo: btt13,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
-        quantidade: qtd,
+        quantidade: quantidade,
         perfil: perfil,
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha
       }).then((response) => {
-        console.log(response);
         toast.success('Apontamento OK', {
           position: "bottom-center",
           autoClose: 1000,
@@ -544,14 +558,13 @@ const Repasse = () => {
         op: op,
         motivo: btt14,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
-        quantidade: qtd,
+        quantidade: quantidade,
         perfil: perfil,
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha
       }).then((response) => {
-        console.log(response);
         toast.success('Apontamento OK', {
           position: "bottom-center",
           autoClose: 1000,
@@ -573,14 +586,13 @@ const Repasse = () => {
         op: op,
         motivo: btt15,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
-        quantidade: qtd,
+        quantidade: quantidade,
         perfil: perfil,
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha
       }).then((response) => {
-        console.log(response);
         toast.success('Apontamento OK', {
           position: "bottom-center",
           autoClose: 1000,
@@ -602,14 +614,13 @@ const Repasse = () => {
         op: op,
         motivo: btt16,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
-        quantidade: qtd,
+        quantidade: quantidade,
         perfil: perfil,
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha
       }).then((response) => {
-        console.log(response);
         toast.success('Apontamento OK', {
           position: "bottom-center",
           autoClose: 1000,
@@ -631,14 +642,13 @@ const Repasse = () => {
         op: op,
         motivo: btt17,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
-        quantidade: qtd,
+        quantidade: quantidade,
         perfil: perfil,
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha
       }).then((response) => {
-        console.log(response);
         toast.success('Apontamento OK', {
           position: "bottom-center",
           autoClose: 1000,
@@ -660,14 +670,13 @@ const Repasse = () => {
         op: op,
         motivo: btt18,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
-        quantidade: qtd,
+        quantidade: quantidade,
         perfil: perfil,
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha
       }).then((response) => {
-        console.log(response);
         toast.success('Apontamento OK', {
           position: "bottom-center",
           autoClose: 1000,
@@ -690,14 +699,13 @@ const Repasse = () => {
         op: op,
         motivo: btt18,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
-        quantidade: qtd,
+        quantidade: quantidade,
         perfil: perfil,
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha
       }).then((response) => {
-        console.log(response);
         toast.success('Apontamento OK', {
           position: "bottom-center",
           autoClose: 1000,

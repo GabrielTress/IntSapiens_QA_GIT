@@ -690,6 +690,26 @@ app.post('/saveChecklistQualidade', async (req, res) => {
   }
 });
 
+
+////////CONSULTA PARA VERIFICAR SE EXISTE RECURSO 11 PERFILADEIRA PARA REPASSE///////////////
+app.get('/consultaPerfiladeira11', async (req, res) => {
+  const { wb_numOrp } = req.query;
+  const connection = await db.getConnection();
+
+  try {
+    const [results] = await connection.query(
+      `SELECT WB_NUMORP FROM WB_SEQLIST WHERE WB_NUMEMP = 1 AND WB_NUMORP = ? AND WB_NUMREC = '11'`,
+      [wb_numOrp]
+    );
+    res.json(results);
+  } catch (err) {
+    console.error('Erro ao executar a consulta:', err);
+    res.status(500).send('Erro ao obter dados');
+  } finally {
+    connection.release();
+  }
+});
+
 /////////////////////////////////////////////////////////////
 app.listen(port, '0.0.0.0', () => {
   console.log(`Servidor rodando em http://192.168.0.250:${port}`);
