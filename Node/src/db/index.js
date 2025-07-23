@@ -637,7 +637,7 @@ app.get('/checklistqualidade/:wb_numProd/:wb_numRec', async (req, res) => {
     }
 
     const [results] = await connection.query(
-      'SELECT WB_NUMEMP, WB_NUMREC, WB_NUMPROD, WB_PARAM, WB_VALORALVO, WB_TOLEMIN, WB_TOLEMAX, WB_FREQUENCIA, WB_TIPO, WB_SEQUENCIA FROM WB_ITENSCHECKLIST WHERE WB_NUMPROD = ? AND WB_NUMREC = ? ORDER BY WB_TIPO, WB_SEQUENCIA',
+      'SELECT * FROM WB_ITENSCHECKLIST WHERE WB_NUMPROD = ? AND WB_NUMREC = ? ORDER BY WB_TIPO, WB_SEQUENCIA',
       [wb_numProd, wb_numRec]
     );
 
@@ -713,6 +713,35 @@ app.get('/consultaPerfiladeira11', async (req, res) => {
 /////////////////////////////////////////////////////////////
 app.listen(port, '0.0.0.0', () => {
   console.log(`Servidor rodando em http://192.168.0.250:${port}`);
+});
+
+//////////////CHECKLIST CONSULTA//////////////////////////////////
+app.get('/checklistqualidade', async (req, res) => {
+
+  const connection = await db.getConnection();
+  try {
+    //const { wb_numProd, wb_numRec } = req.params;
+
+    /*if (!wb_numProd || !wb_numRec) {
+      return res.status(400).send('Código do produto ou recurso não fornecido');
+    }*/
+
+    const [results] = await connection.query(
+      /*'SELECT * FROM WB_ITENSCHECKLIST WHERE WB_NUMPROD = ? AND WB_NUMREC = ? ORDER BY WB_TIPO, WB_SEQUENCIA',*/
+      'SELECT * FROM WB_ITENSCHECKLIST WHERE WB_NUMPROD = "30003308600370" ORDER BY WB_NUMPROD, WB_TIPO, WB_SEQUENCIA',
+    );
+
+    if (results.length === 0) {
+      return res.status(404).send('Produto não encontrado');
+    }
+
+    res.json(results);
+  } catch (err) {
+    console.error('Erro ao executar a consulta:', err);
+    res.status(500).send('Erro ao obter dados do produto');
+  }finally {
+    connection.release();
+  }
 });
 
 module.exports;

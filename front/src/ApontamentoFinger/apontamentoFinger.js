@@ -124,22 +124,25 @@ function ApontamentoFinger() {
       if (linhaSelecionada !== null) {
         const wb_numProdSelecionado = linhaSelecionada.wb_numProd;
         const wb_numRecSelecionado = linhaSelecionada.wb_numRec;
+    
         axios.get(`http://192.168.0.250:9002/checklistqualidade/${wb_numProdSelecionado}/${wb_numRecSelecionado}`)
-        .then(response => {
-          setitensChecklist(response.data); // agora será um array com todas as linhas
-          setShowChecklist(true);
-        })
-      } else {
-        toast.error('Produto sem inspeção cadastrada!', {
-          position: "bottom-center",
-          autoClose: 2500,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          className: 'custom-toast-error'
-        });
+          .then(response => {
+            setitensChecklist(response.data); // agora será um array com todas as linhas
+            setShowChecklist(true);
+          })
+          .catch(error => {
+            toast.error('Produto sem inspeção cadastrada!', {
+              position: "bottom-center",
+              autoClose: 2500,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              className: 'custom-toast-error'
+            });
+            
+          });
       }
     };
   

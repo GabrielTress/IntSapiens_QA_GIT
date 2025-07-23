@@ -16,11 +16,6 @@ function HomePage() {
           </button>
           <button 
             className="button-home" 
-            onClick={() => navigate('/repasse')}>
-            Repasse Linha Pintura
-          </button>
-          <button 
-            className="button-home" 
             onClick={() => navigate('/frame')}>
             Apontamento Nó Finger
           </button>
@@ -38,6 +33,11 @@ function HomePage() {
             className="button-home" 
             onClick={() => navigate('/inventario')}>
             Inventário
+          </button>
+          <button 
+            className="button-home" 
+            onClick={() => navigate('/cadastroChecklist')}>
+            Cadastro CheckList
           </button>
 
         </div>

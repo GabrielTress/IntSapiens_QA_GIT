@@ -1,0 +1,113 @@
+.tdQuantidade {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .qtdEtiqueta {
+    width: 70px;
+    text-align: center;
+    padding: 4px;
+    box-sizing: border-box;
+  }
+  .selectRecurso {
+    display: flex;
+    align-items: center; /* Alinha verticalmente */
+    gap: 10px; /* Espaço entre o título e o select */
+    margin-bottom: 20px;
+    padding: 5px 30px; /* Alinha com o conteúdo */
+  }
+  
+  .selectRecurso h3 {
+    margin: 0;
+    font-size: 18px;
+    white-space: nowrap;
+  }
+  
+  .selectRecursoEtiquetaFinger {
+    width: 120px; /* Tamanho menor */
+    padding: 6px 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+
+
+
+/*CHECKLIST*/
+  
+.modal-container-checklist {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 9999;
+}
+
+.modal-container-checklist h3 {
+text-align: center;
+}
+
+.modal-content-checklist {
+  margin-bottom: 10px; /* Espaço entre a descrição e o botão */
+}
+
+.tabela-checklist {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+.tabela-checklist th,
+.tabela-checklist td {
+  border: 1px solid #ddd;
+  padding: 2px;
+  text-align: center;
+}
+
+.ok-nok-buttons {
+  display: flex;
+  gap: 2px;
+  justify-content: center;
+}
+
+.ok-nok-buttons button {
+  padding: 6px 6px;
+  border: 1px solid #ccc;
+  background-color: #f4f4f4;
+  cursor: pointer;
+  border-radius: 4px;
+  min-width: 50px;
+}
+
+.ok-nok-buttons button.selected {
+  background-color: #4caf50; /* verde para OK */
+  color: white;
+  font-weight: bold;
+}
+
+.ok-nok-buttons button.nok.selected {
+  background-color: #f44336; /* vermelho para NOK */
+  color: white;
+  font-weight: bold;
+}
+.tabela-checklist input[type="number"] {
+  width: 80px;
+  padding: 6px;
+  font-size: 14px;
+}
+
+
+.button-container-checklist {
+  flex-direction: column;
+  gap: 8px;
+}
+
+.Toastify__toast-container {
+  z-index: 9999 !important;
+}
