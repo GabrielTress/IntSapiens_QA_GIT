@@ -541,14 +541,14 @@ app.put('/updateObterEtiquetaFinger', async (req, res) => {
 
 /////////////APONTAMENTO BASEADO NA ETIQUETA PARA ENVIO PARA O WS///////////////////////////////
 app.post('/apontamentoEtiqueta', async (req, res) => {
-  const {wb_numEmp, wb_numRec, wb_numOri, wb_qtdProd, wb_numOrp, wb_numEtq, wb_dtApont, wb_process } = req.body;
+  const {wb_numEmp, wb_numRec, wb_numOri, wb_qtdProd, wb_numOrp, wb_numEtq, wb_dtApont, wb_operador, wb_process } = req.body;
 
   const connection = await db.getConnection();
   await connection.beginTransaction();
   try {
     // Inserindo o novo apontamento na tabela WB_APONTAMENTO
-    const insertSql = 'INSERT INTO WB_APONTAMENTOETIQUETA (WB_NUMEMP, WB_NUMORP, WB_NUMORI, WB_NUMREC, WB_NUMETQ, WB_QTDETQ, WB_DATAPONT, WB_PROCESS) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-    await connection.query(insertSql, [wb_numEmp, wb_numOrp, wb_numOri, wb_numRec, wb_numEtq, wb_qtdProd, wb_dtApont, wb_process]);
+    const insertSql = 'INSERT INTO WB_APONTAMENTOETIQUETA (WB_NUMEMP, WB_NUMORP, WB_NUMORI, WB_NUMREC, WB_NUMETQ, WB_QTDETQ, WB_DATAPONT, WB_OPERADOR, WB_PROCESS) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    await connection.query(insertSql, [wb_numEmp, wb_numOrp, wb_numOri, wb_numRec, wb_numEtq, wb_qtdProd, wb_dtApont, wb_operador, wb_process]);
 
 
     // Commit a transação
@@ -656,7 +656,7 @@ app.get('/checklistqualidade/:wb_numProd/:wb_numRec', async (req, res) => {
 
 /////INSERINDO CHECKLIST NO BANCO/////////////////////////
 app.post('/saveChecklistQualidade', async (req, res) => {
-  const {wb_numEmp, checklist, wb_numProd, wb_numRec, wb_numOrp, wb_numOri, wb_numEtq, wb_dtApont, wb_process, wb_nomeRec} = req.body;
+  const {wb_numEmp, checklist, wb_numProd, wb_numRec, wb_numOrp, wb_numOri, wb_numEtq, wb_dtApont, wb_process, wb_nomeRec, wb_operador} = req.body;
 
   const connection = await db.getConnection();
   try {
@@ -673,11 +673,11 @@ app.post('/saveChecklistQualidade', async (req, res) => {
 
       const insertSql = `
         INSERT INTO WB_REGISTROCHECKLIST
-        (WB_NUMEMP, WB_NUMREC, WB_NUMORP, WB_NUMORI, WB_NUMPRO, WB_NUMETQ, WB_PARAM, WB_VALORALVO, WB_TOLEMIN, WB_TOLEMAX, WB_RESULTADO, WB_NOMEREC, WB_DTAPONT, WB_PROCESS)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (WB_NUMEMP, WB_NUMREC, WB_NUMORP, WB_NUMORI, WB_NUMPRO, WB_NUMETQ, WB_PARAM, WB_VALORALVO, WB_TOLEMIN, WB_TOLEMAX, WB_RESULTADO, WB_NOMEREC, WB_OPERADOR, WB_DTAPONT, WB_PROCESS)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
-      await connection.query(insertSql, [wb_numEmp, wb_numRec, wb_numOrp, wb_numOri, wb_numProd,wb_numEtq, parametro, alvo, minimo, maximo, valorDigitado, wb_nomeRec, wb_dtApont, wb_process]);
+      await connection.query(insertSql, [wb_numEmp, wb_numRec, wb_numOrp, wb_numOri, wb_numProd, wb_numEtq, parametro, alvo, minimo, maximo, valorDigitado, wb_nomeRec, wb_operador, wb_dtApont, wb_process]);
     }
     await connection.commit();
     res.status(200).send("Checklist salvo com sucesso.");

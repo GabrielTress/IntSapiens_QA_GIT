@@ -29,6 +29,7 @@ function ApontamentoFinger() {
   const wb_dtApont = moment().format('DD-MM-YYYY HH:mm:ss');
   const navigate = useNavigate();
   const [recurso, setRecurso] = useState('');
+  const [operador, setOperador] = useState('');
   const [infoTecnicas, setInfoTecnicas] = useState(null);
 
   const handleVoltar = () => {
@@ -121,6 +122,8 @@ function ApontamentoFinger() {
   
   
     const handleChecklistQualidade = () => {
+      if (recurso && operador) {
+
       if (linhaSelecionada !== null) {
         const wb_numProdSelecionado = linhaSelecionada.wb_numProd;
         const wb_numRecSelecionado = linhaSelecionada.wb_numRec;
@@ -144,6 +147,18 @@ function ApontamentoFinger() {
             
           });
       }
+    }else{
+      toast.error('Falta preencher recurso ou operador!', {
+        position: "bottom-center",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        className: 'custom-toast-error'
+      });
+    }
     };
   
   const [respostas, setRespostas] = useState({});
@@ -167,7 +182,7 @@ function ApontamentoFinger() {
       return;
     }
     //setShowChecklist(false);
-    //setRespostas({});
+    setRespostas({});
   
     if (etiquetaParaProcessarIndex !== null) {
       
@@ -192,6 +207,7 @@ function ApontamentoFinger() {
                 wb_dtApont,
                 wb_process,
                 wb_nomeRec: recurso,
+                wb_operador: operador,
             });
       }catch(error){
           toast.error("Erro ao gravar checklist!", {
@@ -251,7 +267,7 @@ function ApontamentoFinger() {
         const quantidadeTotalProduzida = quantidadeJaProduzida + quantidadeProduzida;
         const quantidadeMaximaPermitida = quantidadeOriginal * 1.3;
 
-        if (wb_numRec && wb_numOrp && etiqueta.quantidade && recurso && Number(etiqueta.quantidade) > 0) {
+        if (wb_numRec && wb_numOrp && etiqueta.quantidade && recurso && operador && Number(etiqueta.quantidade) > 0) {
           if (quantidadeTotalProduzida <= quantidadeMaximaPermitida) {
             try {
               const { data: zpl } = await axios.post('http://192.168.0.250:9002/printFinger', {
@@ -331,7 +347,8 @@ function ApontamentoFinger() {
                     wb_qtdProd: etiqueta.quantidade,
                     wb_dtApont,
                     wb_process: 'N',
-                    wb_numEtq: etiqueta.etiqueta
+                    wb_numEtq: etiqueta.etiqueta,
+                    wb_operador: operador
                   });
           
                   const atualizado = [...obterEtiqueta];
@@ -378,7 +395,7 @@ function ApontamentoFinger() {
                       });
             }
         }else{
-          toast.error('Falta preencher quantidade ou recurso!', {
+          toast.error('Falta preencher quantidade, recurso ou operador!', {
             position: "bottom-center",
             autoClose: 2000,
             hideProgressBar: false,
@@ -425,7 +442,16 @@ function ApontamentoFinger() {
                 <option value="">Selecione...</option>
                 <option value="Finger 01">Finger 01</option>
                 <option value="Finger 02">Finger 02</option>
-              </select>
+          </select>
+              <h3>Operador:</h3>    
+          <select className = "selectOperadorFinger" id="operador" value={operador} onChange={(e) => setOperador(e.target.value)}>
+                <option value="">Selecione...</option>
+                <option value="1321">1321 - DANIEL MUCKENBERGER</option>
+                <option value="1664">1664 - EZEQUIEL MONTEIRO</option>
+                <option value="1495">1495 - ISRAEL MONTEIRO</option>
+                <option value="1619">1619 - JACSON JAIR HINSCHING</option>
+                <option value="1691">1691 - MARCOS LUIZ MICHELMANN</option>
+          </select>
               <button className="button" onClick={handleVoltar}>
                   Voltar
              </button>
@@ -447,9 +473,9 @@ function ApontamentoFinger() {
               <td>{item.op}</td>
               <td>{item.descricao}</td>
               <td>{item.etiqueta}</td>
-              <td className="tdQuantidade">
+              <td className="tdQuantidadeFinger">
                 <input
-                  className="qtdEtiqueta"
+                  className="qtdEtiquetaFinger"
                   type="number"
                   value={item.quantidade}
                   onChange={(e) => handleQuantidadeChange(index, e.target.value)}

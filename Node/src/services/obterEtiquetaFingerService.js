@@ -35,7 +35,7 @@ const getObterEtiquetaFingerFromSapiens = async () => {
             SELECT DISTINCT WB_NUMORP, WB_NUMREC, WB_NUMORI 
             FROM WB_SEQLIST 
             WHERE (WB_NUMREC = '04' OR WB_NUMREC = '07') 
-            AND WB_STSGT <> 'F'
+            AND WB_STSGT = 'L'
         `);
 
         for (const { WB_NUMORP, WB_NUMREC, WB_NUMORI } of rows) {

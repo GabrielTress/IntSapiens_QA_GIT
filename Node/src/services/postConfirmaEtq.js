@@ -20,7 +20,7 @@ app.use(express.json());
 
 
 const sapiensWsdlUrl = 'http://192.168.0.1:8080/g5-senior-services/sapiens_Syncintegracao.vedois?wsdl';
-const metodoConfirmaEtq = "ConfirmaEtq";
+const metodoConfirmaEtq = "ApontamentoFinger";
 
 const postConfirmaEtiquetaForSapiens = async () => {
     let connection;
@@ -35,7 +35,7 @@ const postConfirmaEtiquetaForSapiens = async () => {
 
         // Selecionar registros com WB_PROCESS = 'N'
         const [rows] = await connection.execute(
-            'SELECT WB_NUMORP, WB_NUMETQ, WB_QTDETQ, WB_DATAPONT FROM WB_APONTAMENTOETIQUETA WHERE WB_PROCESS = ?',
+            'SELECT WB_NUMEMP, WB_NUMORI, WB_NUMORP, WB_NUMETQ, WB_QTDETQ, WB_DATAPONT, WB_OPERADOR FROM WB_APONTAMENTOETIQUETA WHERE WB_PROCESS = ?',
             ['N']
         );
 
@@ -50,10 +50,15 @@ const postConfirmaEtiquetaForSapiens = async () => {
                 password: 'apontamentoweb',
                 encryption: 0,
                 parameters: {
+                    CodEmp: row.WB_NUMEMP,
+                    CodOri: row.WB_NUMORI,
+                    NumOrp: row.WB_NUMORP,
                     NumEtq: row.WB_NUMETQ,
-                    QtdEtq: row.WB_QTDETQ,
-                    HorEtq: moment(row.WB_DATAPONT, 'HH:mm:ss').format('HH:mm:ss'),
-                    DatEtq: moment(row.WB_DATAPONT, 'DD-MM-YYYY').format('DD/MM/YYYY')
+                    QtdRe1: row.WB_QTDETQ,
+                    DatApt: moment(row.WB_DATAPONT, 'DD-MM-YYYY HH:mm:ss').format('DD/MM/YYYY HH:mm:ss'),
+                    NumCad: row.WB_OPERADOR
+                    //HorEtq: moment(row.WB_DATAPONT, 'HH:mm:ss').format('HH:mm:ss'),
+                    
 
                 }
             };

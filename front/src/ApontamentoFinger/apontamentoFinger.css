@@ -1,15 +1,17 @@
 .tdQuantidade {
-    display: flex;
+    
     justify-content: center;
     align-items: center;
+    
   }
   
-  .qtdEtiqueta {
+  .qtdEtiquetaFinger {
     width: 70px;
     text-align: center;
     padding: 4px;
     box-sizing: border-box;
   }
+
   .selectRecurso {
     display: flex;
     align-items: center; /* Alinha verticalmente */
@@ -31,7 +33,23 @@
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box;
+    
   }
+
+  .selectOperadorFinger {
+    width: 300px; /* Tamanho menor */
+    padding: 6px 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    
+  }
+
+
+
+  
+
 
 
 
