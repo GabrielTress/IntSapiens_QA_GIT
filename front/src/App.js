@@ -10,6 +10,7 @@ import ApontamentoFinger from './ApontamentoFinger/apontamentoFinger';
 import ConsultaDesenho from './ConsultaDesenho/consultaDesenho';
 import ConsultaPedido from './ConsultaPedido/consultaPedido';
 import Importar from './Importar/importar';
+import Repasse from './Repasse/repasse';
 import CadastroChecklist from './CadastroChecklist/cadastroChecklist';
 import './App.css';
 
@@ -25,6 +26,7 @@ const App = () => {
         <Route path="/apontamento" element={<Apontamento />} />
         <Route path="/componentes" element={<Componentes />} />
         <Route path="/frame" element={<Frame />} />
+        <Route path="/repasse" element={<Repasse />} />
         <Route path="/importar-sapiens" element={<Importar />} />
         <Route path="/apontamentoFinger" element={<ApontamentoFinger/>}/>
         <Route path="/inventario" element={<Inventario/>}/>
