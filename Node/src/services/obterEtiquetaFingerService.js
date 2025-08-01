@@ -19,7 +19,7 @@ app.use(express.json());
 
 
 
-const sapiensWsdlUrl = 'http://192.168.0.1:8080/g5-senior-services/sapiens_Synccom.senior.g5.co.int.mpr.Madesp?wsdl';
+const sapiensWsdlUrl = 'http://192.168.0.1:8080/g5-senior-services/sapiens_Syncintegracao_vedois?wsdl';
 const metodoObterEtiqueta = "ObtEtqPro";
 
 const getObterEtiquetaFingerFromSapiens = async () => {
@@ -39,6 +39,7 @@ const getObterEtiquetaFingerFromSapiens = async () => {
         `);
 
         for (const { WB_NUMORP, WB_NUMREC, WB_NUMORI } of rows) {
+       
             const params = {
                 user: 'apontamentoweb',
                 password: 'apontamentoweb',
@@ -47,6 +48,7 @@ const getObterEtiquetaFingerFromSapiens = async () => {
                     codEmp: 1,
                     codOri: WB_NUMORI,
                     numOrp: WB_NUMORP
+                    
                 }
             };
 
@@ -88,7 +90,7 @@ const getObterEtiquetaFingerFromSapiens = async () => {
 };
 
 const verificarEAtualizarRegistro = async (item, connection, numOrp, numRec, codOri) => {
-    const numEtq = item.numEtq;
+    const numEtq = item.numEtq.replace(/^0+/, '');
     const seqEtq = item.seqEtq;
     const qtdEtq = item.qtdEtq;
 
@@ -98,7 +100,7 @@ const verificarEAtualizarRegistro = async (item, connection, numOrp, numRec, cod
         try {
             await connection.execute(
                 `INSERT INTO WB_OBTERETIQUETA 
-                (WB_NUMEMP, WB_NUMROP, WB_NUMORI, WB_NUMREC, WB_NUMETQ, WB_SEQETQ, WB_QTDETQ, WB_PROCESS) 
+                (WB_NUMEMP, WB_NUMORP, WB_NUMORI, WB_NUMREC, WB_NUMETQ, WB_SEQETQ, WB_QTDETQ, WB_PROCESS) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
                 [1, numOrp, codOri, numRec, numEtq, seqEtq, qtdEtq, 'N']
             );

@@ -1,10 +1,11 @@
-const sequenciamentoService = require('./services/sequenciamentoService');
+//const sequenciamentoService = require('./services/sequenciamentoService');
 //const recursoService = require('./services/recursoService');
-//const dadosProduto = require('./services/dadosProdutoService');
+const dadosProduto = require('./services/dadosProdutoService');
 //const etiqueta = require('./services/etiquetaService');
 //const postApontamento = require('./services/postApontamentoService');
 //const postComponente = require('./services/postComponenteService');
 //const obterEtiquetaFinger = require ('./services/obterEtiquetaFingerService');
+//const obterEtiquetaService = require('./services/obterEtiquetaFingerService');
 
 const integracaoIsolada = async () => {
 try {
@@ -12,9 +13,10 @@ try {
     const data = await Promise.all([
         //obterEtiquetaFinger.getObterEtiquetaFingerFromSapiens()
         //postApontamento.postApontamentoForSapiens(),
-        sequenciamentoService.getSequenciamentoFromSapiens(),
+        //sequenciamentoService.getSequenciamentoFromSapiens(),
+        //obterEtiquetaService.getObterEtiquetaFingerFromSapiens(),
         //recursoService.getRecursoFromSapiens(),
-        //dadosProduto.getDadosProdutoFromSapiens(),
+        dadosProduto.getDadosProdutoFromSapiens(),
         //etiqueta.getEtiquetaFromSapiens(),
         //postComponente.postApontamentoComponentesForSapiens(),
         // outras promessas, se houver

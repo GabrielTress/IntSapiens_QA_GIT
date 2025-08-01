@@ -12,7 +12,6 @@ function ApontamentoFinger() {
   const location = useLocation();
   const linhaSelecionada = location.state?.linha;
   const filtroID = location.state?.filtroID || '';
-
   const [wb_numRec, setWb_numRec] = useState(linhaSelecionada?.wb_numRec || '');
   const [wb_numOrp, setWb_numOrp] = useState(linhaSelecionada?.wb_numOrp || '');
   const [wb_numEmp, setWb_numEmp] = useState(linhaSelecionada?.wb_numEmp || '');
@@ -122,7 +121,7 @@ function ApontamentoFinger() {
   
   
     const handleChecklistQualidade = () => {
-      if (recurso && operador) {
+    if (recurso && operador) { 
 
       if (linhaSelecionada !== null) {
         const wb_numProdSelecionado = linhaSelecionada.wb_numProd;
@@ -148,7 +147,7 @@ function ApontamentoFinger() {
           });
       }
     }else{
-      toast.error('Falta preencher recurso ou operador!', {
+      toast.error('Falta preencher recurso, operador ou impressora!', {
         position: "bottom-center",
         autoClose: 2000,
         hideProgressBar: false,
@@ -166,12 +165,32 @@ function ApontamentoFinger() {
   const handleResposta = (index, valor) => {
     setRespostas(prev => ({ ...prev, [index]: valor }));
   };
+
+  const verificarImpressora = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:9100/default?type=printer');
+      const data = response.data;
+  
+      const impressoraValida =
+        data?.deviceType === 'printer' &&
+        data?.connection === 'usb' &&
+        data?.manufacturer?.toLowerCase().includes('zebra');
+  
+      return impressoraValida; // TRUE se OK
+  
+    } catch (error) {
+      console.error("Erro ao verificar impressora:", error);
+      return false; // FALSE se erro
+    }
+  };
   
   const handleSubmitRespostas = async () => {
 
     const preenchido = itensChecklist.every((_, index) => {
       const resposta = respostas[index];
       return resposta !== undefined && resposta !== null && resposta !== '';
+
+
     });
     if (!preenchido) {
       toast.error("Preencha todos os campos do checklist!", {
@@ -181,47 +200,58 @@ function ApontamentoFinger() {
       });
       return;
     }
-    //setShowChecklist(false);
-    setRespostas({});
-  
-    if (etiquetaParaProcessarIndex !== null) {
-      
-      handleProcessarEtiqueta(etiquetaParaProcessarIndex);
-      
-      try{
-        const checklistComRespostas = itensChecklist.map((item, index) => ({
-          parametro: item.WB_PARAM,
-          alvo: item.WB_VALORALVO,
-          minimo: item.WB_TOLEMIN,
-          maximo: item.WB_TOLEMAX,
-          valorDigitado: respostas[index]
-        }));
-            await axios.post('http://192.168.0.250:9002/saveChecklistQualidade', {
-                wb_numEmp,
-                wb_numProd,
-                wb_numRec,
-                wb_numOrp,
-                wb_numOri,
-                wb_numEtq: obterEtiqueta[etiquetaParaProcessarIndex]?.etiqueta,
-                checklist: checklistComRespostas,
-                wb_dtApont,
-                wb_process,
-                wb_nomeRec: recurso,
-                wb_operador: operador,
-            });
-      }catch(error){
+
+    const validacaoImpressora = await verificarImpressora();
+
+    if (validacaoImpressora) {
+      if (etiquetaParaProcessarIndex !== null) {
+    
+        handleProcessarEtiqueta(etiquetaParaProcessarIndex);
+    
+        try {
+          const checklistComRespostas = itensChecklist.map((item, index) => ({
+            parametro: item.WB_PARAM,
+            alvo: item.WB_VALORALVO,
+            minimo: item.WB_TOLEMIN,
+            maximo: item.WB_TOLEMAX,
+            valorDigitado: respostas[index]
+          }));
+    
+          await axios.post('http://192.168.0.250:9002/saveChecklistQualidade', {
+            wb_numEmp,
+            wb_numProd,
+            wb_numRec,
+            wb_numOrp,
+            wb_numOri,
+            wb_numEtq: obterEtiqueta[etiquetaParaProcessarIndex]?.etiqueta,
+            checklist: checklistComRespostas,
+            wb_dtApont,
+            wb_process,
+            wb_nomeRec: recurso,
+            wb_operador: operador,
+          });
+    
+        } catch (error) {
           toast.error("Erro ao gravar checklist!", {
-          position: "bottom-center",
-          autoClose: 2000,
-          className: 'custom-toast-error'
-        });
+            position: "bottom-center",
+            autoClose: 2000,
+            className: 'custom-toast-error'
+          });
+        }
       }
+    
+      setShowChecklist(false);
+      setEtiquetaParaProcessarIndex(null);
+      setRespostas({});
       
+    } else {
+      toast.error("Zebra Browzer Print não localizado!", {
+        position: "bottom-center",
+        autoClose: 2000,
+        className: 'custom-toast-error'
+      });
     }
-    setShowChecklist(false);
-    setEtiquetaParaProcessarIndex(null); // reset
-    //console.log('Respostas do utilizador:', respostas);
-  };
+  }
 
   
   const handleCancelar = () => {
@@ -270,6 +300,8 @@ function ApontamentoFinger() {
         if (wb_numRec && wb_numOrp && etiqueta.quantidade && recurso && operador && Number(etiqueta.quantidade) > 0) {
           if (quantidadeTotalProduzida <= quantidadeMaximaPermitida) {
             try {
+
+
               const { data: zpl } = await axios.post('http://192.168.0.250:9002/printFinger', {
                 wb_numOrp,
                 wb_numProd,
@@ -312,6 +344,7 @@ function ApontamentoFinger() {
                   });
                   return;
                 }
+              
           
                 printer.send(zpl, async function() {
                   toast.success(`Etiqueta ${etiqueta.etiqueta} enviada à impressora!`, {
@@ -341,7 +374,7 @@ function ApontamentoFinger() {
           
                   await axios.post('http://192.168.0.250:9002/apontamentoEtiqueta', {
                     wb_numEmp,
-                    wb_numRec,
+                    wb_numRec: recurso,
                     wb_numOri,
                     wb_numOrp,
                     wb_qtdProd: etiqueta.quantidade,
@@ -440,8 +473,8 @@ function ApontamentoFinger() {
           <h3>Recurso:</h3>
           <select className = "selectRecursoEtiquetaFinger" id="recurso" value={recurso} onChange={(e) => setRecurso(e.target.value)}>
                 <option value="">Selecione...</option>
-                <option value="Finger 01">Finger 01</option>
-                <option value="Finger 02">Finger 02</option>
+                <option value="04">Finger 01</option>
+                <option value="05">Finger 02</option>
           </select>
               <h3>Operador:</h3>    
           <select className = "selectOperadorFinger" id="operador" value={operador} onChange={(e) => setOperador(e.target.value)}>
@@ -451,6 +484,9 @@ function ApontamentoFinger() {
                 <option value="1495">1495 - ISRAEL MONTEIRO</option>
                 <option value="1619">1619 - JACSON JAIR HINSCHING</option>
                 <option value="1691">1691 - MARCOS LUIZ MICHELMANN</option>
+                <option value="2051">2051 - CLEITON KLEMANN</option>
+                <option value="2149">2149 - NELSON WITHOEFT</option>
+                <option value="1974">1974 - ANTONIO CARLOS CORREA</option>
           </select>
               <button className="button" onClick={handleVoltar}>
                   Voltar

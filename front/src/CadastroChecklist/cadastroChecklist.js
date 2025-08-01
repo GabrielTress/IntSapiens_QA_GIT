@@ -142,19 +142,19 @@ function CadastroChecklist() {
               </td>
               {linhaEditando === index ? (
                 <>
-                  <td><input value={valoresEditados.numRec} onChange={(e) => setValoresEditados({...valoresEditados, numRec: e.target.value})} /></td>
-                  <td><input value={valoresEditados.numProd} onChange={(e) => setValoresEditados({...valoresEditados, numProd: e.target.value})} /></td>
-                  <td><input value={valoresEditados.descricao} onChange={(e) => setValoresEditados({...valoresEditados, descricao: e.target.value})} /></td>
-                  <td><input value={valoresEditados.valorAlvo} onChange={(e) => setValoresEditados({...valoresEditados, valorAlvo: e.target.value})} /></td>
-                  <td><input value={valoresEditados.valorMin} onChange={(e) => setValoresEditados({...valoresEditados, valorMin: e.target.value})} /></td>
-                  <td><input value={valoresEditados.valorMax} onChange={(e) => setValoresEditados({...valoresEditados, valorMax: e.target.value})} /></td>
-                  <td><input value={valoresEditados.frequencia} onChange={(e) => setValoresEditados({...valoresEditados, frequencia: e.target.value})} /></td>
-                  <td><select value={valoresEditados.tipo} onChange={(e) => setValoresEditados({...valoresEditados, tipo: e.target.value})}>
+                  <td><input className="inputEditCadastro" value={valoresEditados.numRec} onChange={(e) => setValoresEditados({...valoresEditados, numRec: e.target.value})} /></td>
+                  <td><input className="inputEditCadastro" value={valoresEditados.numProd} onChange={(e) => setValoresEditados({...valoresEditados, numProd: e.target.value})} /></td>
+                  <td><input className="inputEditCadastro" value={valoresEditados.descricao} onChange={(e) => setValoresEditados({...valoresEditados, descricao: e.target.value})} /></td>
+                  <td><input className="inputEditCadastro" value={valoresEditados.valorAlvo} onChange={(e) => setValoresEditados({...valoresEditados, valorAlvo: e.target.value})} /></td>
+                  <td><input className="inputEditCadastro" value={valoresEditados.valorMin} onChange={(e) => setValoresEditados({...valoresEditados, valorMin: e.target.value})} /></td>
+                  <td><input className="inputEditCadastro" value={valoresEditados.valorMax} onChange={(e) => setValoresEditados({...valoresEditados, valorMax: e.target.value})} /></td>
+                  <td><input className="inputEditCadastro" value={valoresEditados.frequencia} onChange={(e) => setValoresEditados({...valoresEditados, frequencia: e.target.value})} /></td>
+                  <td><select className="inputEditCadastro" value={valoresEditados.tipo} onChange={(e) => setValoresEditados({...valoresEditados, tipo: e.target.value})}>
                           <option value="NUMERICO">NUMERICO</option>
                           <option value="OK/NOK">OK/NOK</option>
                       </select>
                   </td>
-                  <td><input value={valoresEditados.sequencia} onChange={(e) => setValoresEditados({...valoresEditados, sequencia: e.target.value})} /></td>
+                  <td><input className="inputEditCadastro" value={valoresEditados.sequencia} onChange={(e) => setValoresEditados({...valoresEditados, sequencia: e.target.value})} /></td>
                   <td>
                     <button onClick={() => handleSalvar(index)}>Salvar</button>
                     <button onClick={handleCancelar}>Cancelar</button>

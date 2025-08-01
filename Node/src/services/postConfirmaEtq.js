@@ -35,7 +35,7 @@ const postConfirmaEtiquetaForSapiens = async () => {
 
         // Selecionar registros com WB_PROCESS = 'N'
         const [rows] = await connection.execute(
-            'SELECT WB_NUMEMP, WB_NUMORI, WB_NUMORP, WB_NUMETQ, WB_QTDETQ, WB_DATAPONT, WB_OPERADOR FROM WB_APONTAMENTOETIQUETA WHERE WB_PROCESS = ?',
+            'SELECT WB_NUMEMP, WB_NUMORI, WB_NUMORP, WB_NUMREC, WB_NUMETQ, WB_QTDETQ, WB_DATAPONT, WB_OPERADOR FROM WB_APONTAMENTOETIQUETA WHERE WB_PROCESS = ?',
             ['N']
         );
 
@@ -56,7 +56,8 @@ const postConfirmaEtiquetaForSapiens = async () => {
                     NumEtq: row.WB_NUMETQ,
                     QtdRe1: row.WB_QTDETQ,
                     DatApt: moment(row.WB_DATAPONT, 'DD-MM-YYYY HH:mm:ss').format('DD/MM/YYYY HH:mm:ss'),
-                    NumCad: row.WB_OPERADOR
+                    NumCad: row.WB_OPERADOR,
+                    CreFng: row.WB_NUMREC
                     //HorEtq: moment(row.WB_DATAPONT, 'HH:mm:ss').format('HH:mm:ss'),
                     
 
