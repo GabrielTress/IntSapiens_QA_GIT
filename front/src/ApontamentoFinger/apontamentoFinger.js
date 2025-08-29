@@ -210,10 +210,10 @@ function ApontamentoFinger() {
     
         try {
           const checklistComRespostas = itensChecklist.map((item, index) => ({
-            parametro: item.WB_PARAM,
-            alvo: item.WB_VALORALVO,
-            minimo: item.WB_TOLEMIN,
-            maximo: item.WB_TOLEMAX,
+            parametro: item.WB_DESVER,
+            alvo: item.WB_VLRALV,
+            minimo: item.WB_VLRMIN,
+            maximo: item.WB_VLRMAX,
             valorDigitado: respostas[index]
           }));
     
@@ -485,7 +485,6 @@ function ApontamentoFinger() {
                 <option value="1619">1619 - JACSON JAIR HINSCHING</option>
                 <option value="1691">1691 - MARCOS LUIZ MICHELMANN</option>
                 <option value="2051">2051 - CLEITON KLEMANN</option>
-                <option value="2149">2149 - NELSON WITHOEFT</option>
                 <option value="1974">1974 - ANTONIO CARLOS CORREA</option>
           </select>
               <button className="button" onClick={handleVoltar}>
@@ -562,9 +561,11 @@ function ApontamentoFinger() {
         <tbody>
           {Array.isArray(itensChecklist) && itensChecklist.map((item, index) => (
             <tr key={index}>
-              <td>{item.WB_PARAM}</td>
               <td>
-                {item.WB_TIPO === 'NUMERICO' ? (
+                {item.WB_DESVER}
+              </td>
+              <td>
+                {item.WB_CODINP2 != 'QUAL-BLANK' ? (
                   <input
                     type="number"
                     value={respostas[index] || ''}
@@ -589,9 +590,9 @@ function ApontamentoFinger() {
                 </div>
                 )}
               </td>
-              <td>{item.WB_VALORALVO}</td>
-              <td>{item.WB_TOLEMIN}</td>
-              <td>{item.WB_TOLEMAX}</td>
+              <td>{item.WB_VLRALV}</td>
+              <td>{item.WB_VLRMIN}</td>
+              <td>{item.WB_VLRMAX}</td>
             </tr>
           ))}
         </tbody>

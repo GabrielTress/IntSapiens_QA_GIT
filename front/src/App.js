@@ -11,7 +11,6 @@ import ConsultaDesenho from './ConsultaDesenho/consultaDesenho';
 import ConsultaPedido from './ConsultaPedido/consultaPedido';
 import Importar from './Importar/importar';
 import Repasse from './Repasse/repasse';
-import CadastroChecklist from './CadastroChecklist/cadastroChecklist';
 import './App.css';
 
 
@@ -32,7 +31,7 @@ const App = () => {
         <Route path="/inventario" element={<Inventario/>}/>
         <Route path="/consultaDesenho" element={<ConsultaDesenho/>}/>
         <Route path="/consultaPedido" element={<ConsultaPedido/>}/>
-        <Route path="/cadastroChecklist" element={<CadastroChecklist/>}/>
+      
       </Routes>
     </Router>
   );

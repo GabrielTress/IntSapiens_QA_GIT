@@ -34,11 +34,6 @@ function HomePage() {
             onClick={() => navigate('/inventario')}>
             Inventário
           </button>
-          <button 
-            className="button-home" 
-            onClick={() => navigate('/cadastroChecklist')}>
-            Cadastro CheckList
-          </button>
 
         </div>
   );

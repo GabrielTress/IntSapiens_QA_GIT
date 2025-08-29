@@ -19,7 +19,7 @@ app.use(express.json());
 
 
 
-const sapiensWsdlUrl = 'http://192.168.0.1:8080/g5-senior-services/sapiens_Syncintegracao.vedois?wsdl';
+const sapiensWsdlUrl = 'http://192.168.0.1:8080/g5-senior-services/sapiens_Synccom.senior.g5.co.int.mpr.Madesp?wsdl';
 const metodoConfirmaEtq = "ApontamentoFinger";
 
 const postConfirmaEtiquetaForSapiens = async () => {
@@ -66,11 +66,11 @@ const postConfirmaEtiquetaForSapiens = async () => {
 
             //console.log(`Enviando Componentes para ordem ${row.WB_NUMORP}...`);
 
-            //console.log('Parâmetros enviados:', JSON.stringify(params, null, 2));
+            console.log('Parâmetros enviados:', JSON.stringify(params, null, 2));
 
             try {
                 const [result] = await client[`${metodoConfirmaEtq}Async`](params);
-                //console.log('Resultado completo da resposta SOAP:', JSON.stringify(result, null, 2));
+                console.log('Resultado completo da resposta SOAP:', JSON.stringify(result, null, 2));
 
                 // Verificar o retorno do SOAP para confirmar envio
                 if (result?.result?.tipRet === '1') {

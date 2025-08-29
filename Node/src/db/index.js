@@ -550,7 +550,7 @@ app.get('/checklistqualidade/:wb_numProd/:wb_numRec', async (req, res) => {
     }
 
     const [results] = await connection.query(
-      'SELECT * FROM WB_ITENSCHECKLIST WHERE WB_NUMPROD = ? AND WB_NUMREC = ? ORDER BY WB_TIPO, WB_SEQUENCIA',
+      'SELECT * FROM WB_ITENSCHECKLIST WHERE WB_CODPIN = ? AND WB_NUMREC = ? ORDER BY WB_CODINP2, WB_SEQVER',
       [wb_numProd, wb_numRec]
     );
 
