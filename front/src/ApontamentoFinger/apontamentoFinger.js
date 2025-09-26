@@ -214,10 +214,20 @@ function ApontamentoFinger() {
             alvo: item.WB_VLRALV,
             minimo: item.WB_VLRMIN,
             maximo: item.WB_VLRMAX,
+            seqRot: item.WB_SEQROT,
+            codEst: item.WB_CODEST,
+            seqEin: item.WB_SEQPXI,
+            seqEiv: item.WB_SEQVER,
+            codPin: item.WB_CODINP,
+            codRot: item.WB_CODROT,
+            sitEin: 1,
+            tipInp: 'I',
+            sitAva: 'N',
+            notEiv: 5,
             valorDigitado: respostas[index]
           }));
     
-          await axios.post('http://192.168.0.250:9002/saveChecklistQualidade', {
+          await axios.post('http://192.168.0.250:9002/saveChecklistQualidadeFinger', {
             wb_numEmp,
             wb_numProd,
             wb_numRec,
@@ -225,10 +235,17 @@ function ApontamentoFinger() {
             wb_numOri,
             wb_numEtq: obterEtiqueta[etiquetaParaProcessarIndex]?.etiqueta,
             checklist: checklistComRespostas,
-            wb_dtApont,
+            wb_data: moment(wb_dtApont, 'DD-MM-YYYY HH:mm:ss').format('DD-MM-YYYY'),
+            wb_hora: moment(wb_dtApont, 'DD-MM-YYYY HH:mm:ss').format('HH:mm:ss'),
             wb_process,
             wb_nomeRec: recurso,
             wb_operador: operador,
+            operacao: 'I',
+            dasIns: 'PRD',
+            sitEpi: 1,
+            qtdRec: obterEtiqueta[etiquetaParaProcessarIndex]?.quantidade,
+            codDer: 0,
+            
           });
     
         } catch (error) {
@@ -575,15 +592,15 @@ function ApontamentoFinger() {
                 <div className="ok-nok-buttons">
                   <button
                     type="button"
-                    className={respostas[index] === 'OK' ? 'selected' : ''}
-                    onClick={() => handleResposta(index, 'OK')}
+                    className={respostas[index] === 'A' ? 'selected' : ''}
+                    onClick={() => handleResposta(index, 'A')}
                   >
                     OK
                   </button>
                   <button
                     type="button"
-                    className={respostas[index] === 'NOK' ? 'selected nok' : 'nok'}
-                    onClick={() => handleResposta(index, 'NOK')}
+                    className={respostas[index] === 'R' ? 'selected nok' : 'R'}
+                    onClick={() => handleResposta(index, 'R')}
                   >
                     NOK
                   </button>

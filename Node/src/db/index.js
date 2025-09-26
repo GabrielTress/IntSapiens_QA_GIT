@@ -566,31 +566,46 @@ app.get('/checklistqualidade/:wb_numProd/:wb_numRec', async (req, res) => {
     connection.release();
   }
 });
-
 /////INSERINDO CHECKLIST NO BANCO/////////////////////////
-app.post('/saveChecklistQualidade', async (req, res) => {
-  const {wb_numEmp, checklist, wb_numProd, wb_numRec, wb_numOrp, wb_numOri, wb_numEtq, wb_dtApont, wb_process, wb_nomeRec, wb_operador} = req.body;
-
+app.post('/saveChecklistQualidadeFinger', async (req, res) => {
+  const {wb_numEmp, checklist, wb_numProd, wb_numRec, wb_numOrp, wb_numOri, wb_numEtq, wb_data, wb_hora,
+         wb_process, wb_nomeRec, wb_operador, operacao, dasIns, sitEpi, qtdRec, codDer} = req.body;
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
-
     for (const item of checklist) {
       const {
         parametro,
         alvo,
         minimo,
         maximo,
+        seqRot,
+        codRot,
+        codEst,
+        seqEin,
+        seqEiv,
+        sitEin,
+        tipInp,
+        sitAva,
+        notEiv,
+        codPin,
         valorDigitado
       } = item;
-
       const insertSql = `
+        INSERT INTO WB_REGISTROCHECKLIST2
+        (WB_NUMEMP, WB_OPERACAO, WB_CODPIN, WB_SITEPI, WB_DATEXE, WB_HOREXE, WB_QTDINP, WB_QTDREC, WB_CODPRO, WB_CODDER, WB_CODROT, WB_CODETG, WB_SEQROT,
+         WB_CODORI, WB_NUMORP, WB_NUMSEP, WB_PROCESS, WB_CODEQP, WB_DASINS, WB_OPERADOR, WB_OBSVER, WB_VLRVER, WB_VLRMIN, WB_VLRMAX, WB_VLRALVO,
+         WB_SEQEIN, WB_SEQEIV, WB_SITEIN, WB_TIPINP, WB_SITAVA, WB_NOTEIV)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+      await connection.query(insertSql, [wb_numEmp, operacao, codPin, sitEpi, wb_data, wb_hora, qtdRec, qtdRec, wb_numProd, codDer, codRot, codEst, seqRot,
+        wb_numOri, wb_numOrp, wb_numEtq, wb_process, wb_nomeRec, dasIns, wb_operador, parametro, valorDigitado, minimo, maximo, alvo, seqEin, seqEiv, sitEin,
+        tipInp, sitAva, notEiv]);
+            /*const insertSql = `
         INSERT INTO WB_REGISTROCHECKLIST
         (WB_NUMEMP, WB_NUMREC, WB_NUMORP, WB_NUMORI, WB_NUMPRO, WB_NUMETQ, WB_PARAM, WB_VALORALVO, WB_TOLEMIN, WB_TOLEMAX, WB_RESULTADO, WB_RECEXEC, WB_OPERADOR, WB_DTAPONT, WB_PROCESS)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-
-      await connection.query(insertSql, [wb_numEmp, wb_numRec, wb_numOrp, wb_numOri, wb_numProd, wb_numEtq, parametro, alvo, minimo, maximo, valorDigitado, wb_nomeRec, wb_operador, wb_dtApont, wb_process]);
+      `;*/
     }
     await connection.commit();
     res.status(200).send("Checklist salvo com sucesso.");

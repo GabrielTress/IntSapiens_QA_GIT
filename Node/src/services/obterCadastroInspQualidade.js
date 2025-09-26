@@ -34,7 +34,7 @@ const getObterCadastroInspQualidade = async () => {
         const [rows] = await connection.execute(`
             SELECT DISTINCT WB_NUMEMP, WB_NUMPROD
             FROM WB_SEQLIST 
-            WHERE WB_STSGT = 'L' AND WB_NUMPROD = '30003912800671'
+            WHERE WB_STSGT = 'L'
         `);
 
         for (const { WB_NUMEMP, WB_NUMPROD } of rows) {
