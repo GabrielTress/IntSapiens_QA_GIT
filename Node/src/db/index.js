@@ -592,20 +592,15 @@ app.post('/saveChecklistQualidadeFinger', async (req, res) => {
         valorDigitado
       } = item;
       const insertSql = `
-        INSERT INTO WB_REGISTROCHECKLIST2
+        INSERT INTO WB_REGISTROCHECKLIST
         (WB_NUMEMP, WB_OPERACAO, WB_CODPIN, WB_SITEPI, WB_DATEXE, WB_HOREXE, WB_QTDINP, WB_QTDREC, WB_CODPRO, WB_CODDER, WB_CODROT, WB_CODETG, WB_SEQROT,
-         WB_CODORI, WB_NUMORP, WB_NUMSEP, WB_PROCESS, WB_CODEQP, WB_DASINS, WB_OPERADOR, WB_OBSVER, WB_VLRVER, WB_VLRMIN, WB_VLRMAX, WB_VLRALVO,
+         WB_CODORI, WB_NUMORP, WB_NUMSEP, WB_PROCESS, WB_CODEQP, WB_DASINS, WB_OPERADOR, WB_OBSVER, WB_VLRVER, WB_VLRMIN, WB_VLRMAX, WB_VLRALV,
          WB_SEQEIN, WB_SEQEIV, WB_SITEIN, WB_TIPINP, WB_SITAVA, WB_NOTEIV)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       await connection.query(insertSql, [wb_numEmp, operacao, codPin, sitEpi, wb_data, wb_hora, qtdRec, qtdRec, wb_numProd, codDer, codRot, codEst, seqRot,
         wb_numOri, wb_numOrp, wb_numEtq, wb_process, wb_nomeRec, dasIns, wb_operador, parametro, valorDigitado, minimo, maximo, alvo, seqEin, seqEiv, sitEin,
         tipInp, sitAva, notEiv]);
-            /*const insertSql = `
-        INSERT INTO WB_REGISTROCHECKLIST
-        (WB_NUMEMP, WB_NUMREC, WB_NUMORP, WB_NUMORI, WB_NUMPRO, WB_NUMETQ, WB_PARAM, WB_VALORALVO, WB_TOLEMIN, WB_TOLEMAX, WB_RESULTADO, WB_RECEXEC, WB_OPERADOR, WB_DTAPONT, WB_PROCESS)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;*/
     }
     await connection.commit();
     res.status(200).send("Checklist salvo com sucesso.");
@@ -639,24 +634,22 @@ app.get('/consultaPerfiladeira11', async (req, res) => {
 });
 
 /////////////////////////////////////////////////////////////
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Servidor rodando em http://192.168.0.250:${port}`);
-});
+
 
 //////////////CHECKLIST CONSULTA//////////////////////////////////
 app.get('/checklistqualidade', async (req, res) => {
 
   const connection = await db.getConnection();
   try {
-    //const { wb_numProd, wb_numRec } = req.params;
+    const { wb_numProd, wb_numRec } = req.params;
 
-    /*if (!wb_numProd || !wb_numRec) {
+    if (!wb_numProd || !wb_numRec) {
       return res.status(400).send('Código do produto ou recurso não fornecido');
-    }*/
+    }
 
     const [results] = await connection.query(
-      /*'SELECT * FROM WB_ITENSCHECKLIST WHERE WB_NUMPROD = ? AND WB_NUMREC = ? ORDER BY WB_TIPO, WB_SEQUENCIA',*/
-      'SELECT * FROM WB_ITENSCHECKLIST WHERE WB_NUMPROD = "30003308600370" ORDER BY WB_NUMPROD, WB_TIPO, WB_SEQUENCIA',
+      'SELECT * FROM WB_ITENSCHECKLIST WHERE WB_NUMPROD = ? AND WB_NUMREC = ? ORDER BY WB_TIPO, WB_SEQUENCIA',
+      /*'SELECT * FROM WB_ITENSCHECKLIST WHERE WB_NUMPROD = "30003308600370" ORDER BY WB_NUMPROD, WB_TIPO, WB_SEQUENCIA',*/
     );
 
     if (results.length === 0) {
@@ -671,5 +664,12 @@ app.get('/checklistqualidade', async (req, res) => {
     connection.release();
   }
 });
+////////////////////////////////
+
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Servidor rodando em http://192.168.0.250:${port}`);
+});
+
+
 
 module.exports;
