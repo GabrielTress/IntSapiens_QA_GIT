@@ -178,6 +178,10 @@ function Sequenciamento() {
       navigate('/apontamentoFinger', { state: { linha: dadosFiltrados[linhaSelecionada], filtroID: inputId } });
       
     }
+    if (numRec === '07'){
+      navigate('/apontamentoColadeira', { state: { linha: dadosFiltrados[linhaSelecionada], filtroID: inputId } });
+      
+    }
     else if (linhaSelecionada !== null) {
       navigate('/apontamento', { state: { linha: dadosFiltrados[linhaSelecionada], filtroID: inputId } });
       

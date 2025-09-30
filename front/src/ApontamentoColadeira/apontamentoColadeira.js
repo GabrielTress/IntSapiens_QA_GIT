@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import './apontamentoFinger.css';
+import './apontamentoColadeira.css';
 import axios from 'axios';
 import moment from 'moment';
 import { ToastContainer, toast } from 'react-toastify';
@@ -8,7 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { FaPrint } from 'react-icons/fa';
 
 
-function ApontamentoFinger() {
+function ApontamentoColadeira() {
   const location = useLocation();
   const linhaSelecionada = location.state?.linha;
   const filtroID = location.state?.filtroID || '';
@@ -27,7 +27,7 @@ function ApontamentoFinger() {
   const wb_process = 'N';
   const wb_dtApont = moment().format('DD-MM-YYYY HH:mm:ss');
   const navigate = useNavigate();
-  const [recurso, setRecurso] = useState('');
+  //const [recurso, setRecurso] = useState('');
   const [operador, setOperador] = useState('');
   const [infoTecnicas, setInfoTecnicas] = useState(null);
 
@@ -121,7 +121,8 @@ function ApontamentoFinger() {
   
   
     const handleChecklistQualidade = () => {
-    if (recurso && operador) { 
+    if (operador) {     
+    //if (recurso && operador) { 
 
       if (linhaSelecionada !== null) {
         const wb_numProdSelecionado = linhaSelecionada.wb_numProd;
@@ -147,7 +148,7 @@ function ApontamentoFinger() {
           });
       }
     }else{
-      toast.error('Falta preencher recurso, operador ou impressora!', {
+      toast.error('Falta preencher operador ou impressora!', {
         position: "bottom-center",
         autoClose: 2000,
         hideProgressBar: false,
@@ -238,7 +239,7 @@ function ApontamentoFinger() {
             wb_data: moment(wb_dtApont, 'DD-MM-YYYY HH:mm:ss').format('DD-MM-YYYY'),
             wb_hora: moment(wb_dtApont, 'DD-MM-YYYY HH:mm:ss').format('HH:mm:ss'),
             wb_process,
-            wb_nomeRec: recurso,
+            wb_nomeRec: wb_numRec,
             wb_operador: operador,
             operacao: 'I',
             dasIns: 'PRD',
@@ -315,7 +316,7 @@ function ApontamentoFinger() {
         const quantidadeTotalProduzida = quantidadeJaProduzida + quantidadeProduzida;
         const quantidadeMaximaPermitida = quantidadeOriginal * 1.3;
 
-        if (wb_numRec && wb_numOrp && etiqueta.quantidade && recurso && operador && Number(etiqueta.quantidade) > 0) {
+        if (wb_numRec && wb_numOrp && etiqueta.quantidade && operador && Number(etiqueta.quantidade) > 0) {
           if (quantidadeTotalProduzida <= quantidadeMaximaPermitida) {
             try {
 
@@ -332,7 +333,7 @@ function ApontamentoFinger() {
                 comprimentoBlanks: infoTecnicas.WB_COMPRO,
                 wb_temFsc,
                 wb_numEtq: etiqueta.etiqueta,
-                wb_nomeRec: recurso
+                wb_nomeRec: 'Coladeira',
               }, { responseType: 'text' });
 
               if (!window.BrowserPrint) {
@@ -392,7 +393,7 @@ function ApontamentoFinger() {
           
                   await axios.post('http://192.168.0.250:9002/apontamentoEtiqueta', {
                     wb_numEmp,
-                    wb_numRec: recurso,
+                    wb_numRec: wb_numRec,
                     wb_numOri,
                     wb_numOrp,
                     wb_qtdProd: etiqueta.quantidade,
@@ -446,7 +447,7 @@ function ApontamentoFinger() {
                       });
             }
         }else{
-          toast.error('Falta preencher quantidade, recurso ou operador!', {
+          toast.error('Falta preencher quantidade ou operador!', {
             position: "bottom-center",
             autoClose: 2000,
             hideProgressBar: false,
@@ -486,14 +487,9 @@ function ApontamentoFinger() {
 
   return (
     <div className="container-apontamentoFinger">
-      <h2>Apontamento Finger</h2>
+      <h2>Apontamento Coladeira</h2>
       <div className="selectRecurso">
-          <h3>Recurso:</h3>
-          <select className = "selectRecursoEtiquetaFinger" id="recurso" value={recurso} onChange={(e) => setRecurso(e.target.value)}>
-                <option value="">Selecione...</option>
-                <option value="04">Finger 01</option>
-                <option value="05">Finger 02</option>
-          </select>
+
               <h3>Operador:</h3>    
           <select className = "selectOperadorFinger" id="operador" value={operador} onChange={(e) => setOperador(e.target.value)}>
                 <option value="">Selecione...</option>
@@ -629,4 +625,4 @@ function ApontamentoFinger() {
   );
 }
 
-export default ApontamentoFinger;
+export default ApontamentoColadeira;

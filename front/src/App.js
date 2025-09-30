@@ -7,6 +7,7 @@ import Componentes from './Componentes/componentes';
 import Frame from './Frame/frame';
 import Inventario from './Inventario/inventario';
 import ApontamentoFinger from './ApontamentoFinger/apontamentoFinger';
+import ApontamentoColadeira from './ApontamentoColadeira/apontamentoColadeira';
 import ConsultaDesenho from './ConsultaDesenho/consultaDesenho';
 import ConsultaPedido from './ConsultaPedido/consultaPedido';
 import Importar from './Importar/importar';
@@ -28,6 +29,7 @@ const App = () => {
         <Route path="/repasse" element={<Repasse />} />
         <Route path="/importar-sapiens" element={<Importar />} />
         <Route path="/apontamentoFinger" element={<ApontamentoFinger/>}/>
+        <Route path="/apontamentoColadeira" element={<ApontamentoColadeira/>}/>
         <Route path="/inventario" element={<Inventario/>}/>
         <Route path="/consultaDesenho" element={<ConsultaDesenho/>}/>
         <Route path="/consultaPedido" element={<ConsultaPedido/>}/>

@@ -569,7 +569,7 @@ app.get('/checklistqualidade/:wb_numProd/:wb_numRec', async (req, res) => {
 /////INSERINDO CHECKLIST NO BANCO/////////////////////////
 app.post('/saveChecklistQualidadeFinger', async (req, res) => {
   const {wb_numEmp, checklist, wb_numProd, wb_numRec, wb_numOrp, wb_numOri, wb_numEtq, wb_data, wb_hora,
-         wb_process, wb_nomeRec, wb_operador, operacao, dasIns, sitEpi, qtdRec, codDer} = req.body;
+         wb_process, wb_nomeRec, wb_operador, operacao, fasIns, dasIns, sitEpi, qtdRec, codDer} = req.body;
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
@@ -594,12 +594,12 @@ app.post('/saveChecklistQualidadeFinger', async (req, res) => {
       const insertSql = `
         INSERT INTO WB_REGISTROCHECKLIST
         (WB_NUMEMP, WB_OPERACAO, WB_CODPIN, WB_SITEPI, WB_DATEXE, WB_HOREXE, WB_QTDINP, WB_QTDREC, WB_CODPRO, WB_CODDER, WB_CODROT, WB_CODETG, WB_SEQROT,
-         WB_CODORI, WB_NUMORP, WB_NUMSEP, WB_PROCESS, WB_CODEQP, WB_DASINS, WB_OPERADOR, WB_OBSVER, WB_VLRVER, WB_VLRMIN, WB_VLRMAX, WB_VLRALV,
+         WB_CODORI, WB_NUMORP, WB_NUMSEP, WB_PROCESS, WB_CODEQP, WB_FASINS, WB_DASINS, WB_OPERADOR, WB_OBSVER, WB_VLRVER, WB_VLRMIN, WB_VLRMAX, WB_VLRALV,
          WB_SEQEIN, WB_SEQEIV, WB_SITEIN, WB_TIPINP, WB_SITAVA, WB_NOTEIV)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       await connection.query(insertSql, [wb_numEmp, operacao, codPin, sitEpi, wb_data, wb_hora, qtdRec, qtdRec, wb_numProd, codDer, codRot, codEst, seqRot,
-        wb_numOri, wb_numOrp, wb_numEtq, wb_process, wb_nomeRec, dasIns, wb_operador, parametro, valorDigitado, minimo, maximo, alvo, seqEin, seqEiv, sitEin,
+        wb_numOri, wb_numOrp, wb_numEtq, wb_process, wb_nomeRec, fasIns, dasIns, wb_operador, parametro, valorDigitado, minimo, maximo, alvo, seqEin, seqEiv, sitEin,
         tipInp, sitAva, notEiv]);
     }
     await connection.commit();

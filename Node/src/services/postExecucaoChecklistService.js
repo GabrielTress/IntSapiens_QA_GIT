@@ -37,7 +37,7 @@ const postExecucaoInspecaoForSapiens = async () => {
 
         // Selecionar registros com WB_PROCESS = 'N'
         const [rows] = await connection.execute(
-            'SELECT WB_NUMEMP, WB_OPERACAO, WB_NUMEPI, WB_CODPIN, WB_SITEPI, WB_DATEXE, WB_HOREXE, WB_QTDINP, WB_QTDREC, WB_CODPRO, WB_CODDER, WB_CODROT. WB_CODETG, WB_SEQROT, WB_CODORI, WB_NUMORP, WB_NUMSEP FROM WB_REGISTROCHECKLIST WHERE WB_PROCESS = ?',
+            'SELECT WB_NUMEMP, WB_OPERACAO, WB_NUMEPI, WB_CODPIN, WB_SITEPI, WB_DATEXE, WB_HOREXE, WB_QTDINP, WB_QTDREC, WB_CODPRO, WB_CODDER, WB_CODROT, WB_CODETG, WB_SEQROT, WB_CODORI, WB_NUMORP, WB_NUMSEP FROM WB_REGISTROCHECKLIST WHERE WB_PROCESS = ?',
             ['N']
         );
 
@@ -52,13 +52,21 @@ const postExecucaoInspecaoForSapiens = async () => {
                 password: 'apontamentoweb',
                 encryption: 0,
                 parameters: {
-                    CodEmp: row.WB_NUMEMP,
-                    CodOri: row.WB_NUMORI,
-                    NumOrp: row.WB_NUMORP,
-                    SeqRot: row.WB_NUMSEQ,
-                    CodCre: row.WB_NUMREC,
-                    QtdRe1: row.WB_QTDPROD,
-                    QtdRfg: row.WB_QTDREF
+                    operacao: row.WB_OPERACAO,
+                    fasIns: row.FASINS,
+                    codPin: row.WB_CODPIN,
+                    datExe: row.WB_DATEXE,
+                    horExe: row.WB_HOREXE,
+                    qtdInp: row.WB_QTDINP,
+                    qtdRec: row.WB_QTDREC,
+                    codPro: row.WB_CODPRO,
+                    codDer: row.WB_CODDER,
+                    codRot: row.WB_CODROT,
+                    codEtg: row.WB_CODETG,
+                    seqRot: row.WB_SEQROT,
+                    codOri: row.WB_CODORI,
+                    numOrp: row.WB_NUMORP,
+                    numSep: row.WB_NUMSEP
                 }
             };
 
