@@ -2,6 +2,7 @@ const soap = require('soap');
 const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
+const moment = require('moment');
 
 
 const app = express();
@@ -35,88 +36,110 @@ const postExecucaoInspecaoForSapiens = async () => {
         connection = await db.getConnection();
         await connection.beginTransaction();
 
-        // Selecionar registros com WB_PROCESS = 'N'
-        const [rows] = await connection.execute(
-            'SELECT WB_NUMEMP, WB_OPERACAO, WB_NUMEPI, WB_CODPIN, WB_SITEPI, WB_DATEXE, WB_HOREXE, WB_QTDINP, WB_QTDREC, WB_CODPRO, WB_CODDER, WB_CODROT, WB_CODETG, WB_SEQROT, WB_CODORI, WB_NUMORP, WB_NUMSEP FROM WB_REGISTROCHECKLIST WHERE WB_PROCESS = ?',
-            ['N']
+                // Selecionar registros com WB_PROCESS = 'N'
+        const [rowsExecucao] = await connection.execute(
+        `SELECT WB_NUMEMP, WB_OPERACAO, WB_CODPIN, WB_SITEPI, WB_DATEXE, WB_HOREXE, 
+                WB_QTDINP, WB_QTDREC, WB_CODPRO, WB_CODDER, WB_CODROT, WB_CODETG, 
+                WB_SEQROT, WB_CODORI, WB_NUMORP, WB_NUMSEP 
+        FROM WB_REGISTROCHECKLIST
+        WHERE WB_PROCESS = 'N'`
         );
 
-        if (rows.length === 0) {
-            console.log('Nenhum registro Apontamento a ser processado.');
-            return;
-        }
+        // 2. Agrupar por WB_NUMSEP
+        const grupos = rowsExecucao.reduce((acc, row) => {
+        acc[row.WB_NUMSEP] = acc[row.WB_NUMSEP] || [];
+        acc[row.WB_NUMSEP].push(row);
+        return acc;
+        }, {});
 
-        for (const row of rows) {
-            const params = {
-                user: 'apontamentoweb',
-                password: 'apontamentoweb',
-                encryption: 0,
-                parameters: {
-                    operacao: row.WB_OPERACAO,
-                    fasIns: row.FASINS,
-                    codPin: row.WB_CODPIN,
-                    datExe: row.WB_DATEXE,
-                    horExe: row.WB_HOREXE,
-                    qtdInp: row.WB_QTDINP,
-                    qtdRec: row.WB_QTDREC,
-                    codPro: row.WB_CODPRO,
-                    codDer: row.WB_CODDER,
-                    codRot: row.WB_CODROT,
-                    codEtg: row.WB_CODETG,
-                    seqRot: row.WB_SEQROT,
-                    codOri: row.WB_CODORI,
-                    numOrp: row.WB_NUMORP,
-                    numSep: row.WB_NUMSEP
-                }
-            };
+        // 3. Enviar cada grupo
+        for (const numSep of Object.keys(grupos)) {
+        const registros = grupos[numSep];
+
+        // monta o objeto do envio com todas as linhas desse NumSep
+        const paramsExecucao = {
+            user: "apontamentoweb",
+            password: "apontamentoweb",
+            encryption: 0,
+            parameters: {
+            numSep,
+            linhas: registros.map(r => ({
+                operacao: r.WB_OPERACAO,
+                codPin: r.WB_CODPIN,
+                datExe: moment(r.WB_DATEXE, 'DD-MM-YYYY HH:mm:ss').format('DD/MM/YYYY'),
+                horExe: r.WB_HOREXE,
+                qtdInp: r.WB_QTDINP,
+                qtdRec: r.WB_QTDREC,
+                codPro: r.WB_CODPRO,
+                codDer: r.WB_CODDER,
+                codRot: r.WB_CODROT,
+                codEtg: r.WB_CODETG,
+                seqRot: r.WB_SEQROT,
+                codOri: r.WB_CODORI,
+                numOrp: r.WB_NUMORP
+            }))
+            }
+        };
 
             //console.log(`Enviando ApontamentoOP para ordem ${row.WB_NUMORP}...`);
 
-            //console.log('Parâmetros enviados:', JSON.stringify(params, null, 2));
+            console.log('Parâmetros enviados:', JSON.stringify(paramsExecucao, null, 2));
 
-            try {
-                const [result] = await client[`${metodoExecucao}Async`](params);
-                //console.log('Resultado completo da resposta SOAP:', JSON.stringify(result, null, 2));
+        try {
+            const [result] = await client[`${metodoExecucao}Async`](paramsExecucao);
+            console.log('Resposta recebida:', JSON.stringify(result, null, 2));
 
-                // Verificar o retorno do SOAP para confirmar envio
-                if (result?.result?.tipRet === '1') {
-                    //console.log(`Apontamento para ordem ${row.WB_NUMORP} enviado com sucesso.`);
-                
-                    // Atualizar registro para WB_PROCESS = 'S'
-                    await connection.execute(
-                        'UPDATE WB_APONTAMENTO SET WB_PROCESS = ? WHERE WB_NUMEMP = ? AND WB_NUMORI = ? AND WB_NUMORP = ? AND WB_NUMSEQ = ? AND WB_NUMREC = ?',
-                        ['S', row.WB_NUMEMP, row.WB_NUMORI, row.WB_NUMORP, row.WB_NUMSEQ, row.WB_NUMREC]
-                    );
-                } else {
-                    console.warn(`Falha ao enviar apontamento para ordem ${row.WB_NUMORP}:`, result?.result?.msgRet || 'Erro desconhecido.');
-                }
-            } catch (error) {
-                console.error(`Erro ao enviar apontamento para ordem ${row.WB_NUMORP}:`, error);
+            if (result?.result?.tipRet === "1") {
+            console.log(`✅ Envio do NumSep ${numSep} OK`);
+
+            // 4. Atualizar todas as linhas desse NumSep
+            /*await connection.execute(
+                `UPDATE WB_REGISTROCHECKLIST
+                SET WB_PROCESS = 'E'
+                WHERE WB_NUMSEP = ?`,
+                [numSep]
+            );*/
+            } else {
+            console.warn(`⚠️ Falha no NumSep ${numSep}:`, result?.result?.msgRet);
             }
+        } catch (err) {
+            console.error(`❌ Erro no NumSep ${numSep}:`, err);
         }
 
+
+        /*try{
+            await connection.beginTransaction();
+
+                    // Selecionar registros com WB_PROCESS = 'N'
+            const [rowsInspecao] = await connection.execute(
+            `SELECT WB_NUMEPI, WB_SEQEIN, WB_QTDINP, WB_NOTEIN, WB_SITEIN, 
+                    WB_TIPINP FROM WB_REGISTROCHECKLIST
+            WHERE WB_NUMEPI = ?`,[result?.result?.numEpi]);
+          
+        } catch{
+            
+        }*/
+        
+    }
+
+
+
+
+
+
         await connection.commit();
-        console.log('Transação Apontamento concluída com sucesso.');
+        console.log('Transação CheckList concluída com sucesso.');
     } catch (error) {
         if (connection) {
             await connection.rollback();
-            console.error('Transação Apontamento revertida devido a um erro.');
+            console.error('Transação CheckList revertida devido a um erro.');
         }
-        console.error('Erro ao processar apontamentos:', error);
+        console.error('Erro ao processar CheckList:', error);
     } finally {
         if (connection) connection.release();
     }
 };
 
-// Rota para executar o getDataFromSapiens
-app.post('/importar-sapiens', async (req, res) => {
-    try {
-        await postExecucaoInspecaoForSapiens();
-        res.status(200).send('Dados atualizados com sucesso');
-    } catch (error) {
-        res.status(500).send('Erro ao atualizar dados');
-    }
-});
 
 module.exports = { postExecucaoInspecaoForSapiens };
 

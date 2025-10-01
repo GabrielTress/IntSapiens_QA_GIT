@@ -355,7 +355,7 @@ app.post('/frame', async (req, res) => {
 
 ////////////////////////////////////////////////////////////////
 //impressão etiquetas finger//
-app.post('/printFinger', (req, res) => {
+app.post('/printFinger', async (req, res) => {
   const {
     wb_numOrp,
     wb_numProd,
@@ -377,7 +377,7 @@ app.post('/printFinger', (req, res) => {
           ^LS0
           ^FWR
           ^M15  
-          ^FO750,350^A0,60,60^FDMADESP      10 - BLANK^FS
+          ^FO750,350^A0,60,60^FDMADESP^FS
           ^FO550,40,^GB200,350,2^FS
           ^FO715,48^A0,30,30^FDEspessura:^FS
           ^FO510,150^A0,200,140^FD${espessuraBlanks}^FS
@@ -404,14 +404,124 @@ app.post('/printFinger', (req, res) => {
           ^FO161,40^GB105,1046,2^FS
           ^FO220,45^A0,30,30^FDProduto:^FS
           ^FO150,170^A0,110,130^FD${wb_numProd}^FS
-          ^FO230,1100^BY4^BCI,100,N,N,N^FD${wb_numEtq}^FS
-          ^FO60,60^BY6^BC,100,Y,N,N^FD${wb_numEtq}^FS
+          ^FO140,1100^BY6^BCI,80,N,N,N^FD${wb_numEtq}^FS
+          ^FO60,150^BY6^BC,80,Y,N,N^FD${wb_numEtq}^FS
           ^XZ`;
-  res.set("Content-Type", "text/plain");
-  res.send(zpl);
+
+ try {
+    const connection = await db.getConnection();
+
+      await connection.execute(
+        `INSERT INTO WB_PRINTETIQUETAS 
+        (WB_NUMORP, WB_NUMPROD, WB_QTDPROD, WB_DATAPONT, 
+          WB_ATRI1, WB_ATRI2, WB_ATRI3, 
+          WB_NUMPED, WB_ITEMPED, WB_TEMFSC, WB_NUMETQ, WB_NOMEREC) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          wb_numOrp,
+          wb_numProd,
+          wb_qtdProd,
+          wb_dtApont,
+          larguraBlanks,
+          espessuraBlanks,
+          comprimentoBlanks,
+          wb_numPed,
+          wb_itemPed,
+          wb_temFsc,
+          wb_numEtq,
+          convertRecurso
+        ]
+      );
+
+      connection.release();
+      //console.log(`✅ Etiqueta ${wb_numEtq} salva no banco.`);
+
+      // Retorna ZPL
+      res.set("Content-Type", "text/plain");
+      res.send(zpl);
+
+    } catch (error) {
+      console.error("❌ Erro ao salvar etiqueta: ", error.message);
+      res.status(500).json({ error: "Erro ao salvar no banco" });
+    }
 });
 
 ////////////////////////////////////////////////////////////////
+
+
+//////////REIMPRESSÃO DE ETIQUETAS//////////////////////////////////////
+
+app.post('/printEtiquetasGeral', async (req, res) => {
+  const { wb_numEtq } = req.body;
+
+  try {
+    const connection = await db.getConnection();
+
+    // Busca a etiqueta já salva
+    const [rows] = await connection.execute(
+      `SELECT WB_NUMORP, WB_NUMPROD, WB_QTDPROD, WB_DATAPONT, 
+              WB_ATRI1, WB_ATRI2, WB_ATRI3, 
+              WB_NUMPED, WB_ITEMPED, WB_TEMFSC, WB_NUMETQ, WB_NOMEREC
+         FROM WB_PRINTETIQUETAS
+        WHERE WB_NUMETQ = ?`,
+      [wb_numEtq]
+    );
+
+    connection.release();
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: `Etiqueta ${wb_numEtq} não encontrada.` });
+    }
+
+    const row = rows[0];
+    const convertRecurso = row.WB_NOMEREC;
+
+    // --- Monta o ZPL com base no banco ---
+    const zpl = `^XA
+          ^LS0
+          ^FWR
+          ^M15  
+          ^FO750,350^A0,60,60^FDMADESP^FS
+          ^FO550,40,^GB200,350,2^FS
+          ^FO715,48^A0,30,30^FDEspessura:^FS
+          ^FO510,150^A0,200,140^FD${row.WB_ATRI2}^FS
+          ^FO550,388^GB200,350,2^FS
+          ^FO715,393^A0,30,30^FDLargura:^FS
+          ^FO510,480^A0,200,140^FD${row.WB_ATRI1}^FS
+          ^FO550,736^GB200,350,2^FS
+          ^FO715,740^A0,30,30^FDComprimento:^FS
+          ^FO510,800^A0,200,140^FD${row.WB_ATRI3}^FS
+          ^FO352,40^GB200,350,2^FS
+          ^FO510,43^A0,30,30^FDOP:^FS
+          ^FO315,90^A0,180,90^FD${row.WB_NUMORP}^FS
+          ^FO352,388^GB200,350,2^FS
+          ^FO510,395^A0,30,30^FDPedido-Item:^FS
+          ^FO325,410^A0,150,80^FD${row.WB_NUMPED}-${row.WB_ITEMPED}^FS
+          ^FO352,736^GB200,350,2^FS
+          ^FO510,739^A0,30,30^FDQtde:^FS
+          ^FO315,830^A0,190,120^FD${row.WB_QTDPROD}^FS
+           ^FO0264,40^GB90,1046,2^FS
+          ^FO290,45^A0,30,30^FDData:^FS
+          ^FO290,130^A0,30,30^FD${row.WB_DATAPONT}^FS
+          ^FO290,480^A0,30,30^FD${convertRecurso}^FS
+          ^FO255,840^A0,90,90^FD${row.WB_TEMFSC}^FS;
+          ^FO161,40^GB105,1046,2^FS
+          ^FO220,45^A0,30,30^FDProduto:^FS
+          ^FO150,170^A0,110,130^FD${row.WB_NUMPROD}^FS
+          ^FO140,1100^BY6^BCI,80,N,N,N^FD${row.WB_NUMETQ}^FS
+          ^FO60,150^BY6^BC,80,Y,N,N^FD${row.WB_NUMETQ}^FS
+          ^XZ`;
+
+    // Retorna ZPL para reimpressão
+    res.set("Content-Type", "text/plain");
+    res.send(zpl);
+
+  } catch (error) {
+    console.error("❌ Erro ao consultar etiqueta:", error.message);
+    res.status(500).json({ error: "Erro ao buscar etiqueta no banco" });
+  }
+});
+
 
 /////////////OBTENDO NUMERO DAS ETIQUETAS//////////////////////
 
@@ -596,7 +706,7 @@ app.post('/saveChecklistQualidadeFinger', async (req, res) => {
         (WB_NUMEMP, WB_OPERACAO, WB_CODPIN, WB_SITEPI, WB_DATEXE, WB_HOREXE, WB_QTDINP, WB_QTDREC, WB_CODPRO, WB_CODDER, WB_CODROT, WB_CODETG, WB_SEQROT,
          WB_CODORI, WB_NUMORP, WB_NUMSEP, WB_PROCESS, WB_CODEQP, WB_FASINS, WB_DASINS, WB_OPERADOR, WB_OBSVER, WB_VLRVER, WB_VLRMIN, WB_VLRMAX, WB_VLRALV,
          WB_SEQEIN, WB_SEQEIV, WB_SITEIN, WB_TIPINP, WB_SITAVA, WB_NOTEIV)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       await connection.query(insertSql, [wb_numEmp, operacao, codPin, sitEpi, wb_data, wb_hora, qtdRec, qtdRec, wb_numProd, codDer, codRot, codEst, seqRot,
         wb_numOri, wb_numOrp, wb_numEtq, wb_process, wb_nomeRec, fasIns, dasIns, wb_operador, parametro, valorDigitado, minimo, maximo, alvo, seqEin, seqEiv, sitEin,

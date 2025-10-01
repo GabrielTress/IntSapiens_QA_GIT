@@ -235,7 +235,7 @@ function ApontamentoFinger() {
             wb_numOri,
             wb_numEtq: obterEtiqueta[etiquetaParaProcessarIndex]?.etiqueta,
             checklist: checklistComRespostas,
-            wb_data: moment(wb_dtApont, 'DD-MM-YYYY HH:mm:ss').format('DD-MM-YYYY'),
+            wb_data: moment(wb_dtApont, 'DD-MM-YYYY HH:mm:ss').format('DD/MM/YYYY'),
             wb_hora: moment(wb_dtApont, 'DD-MM-YYYY HH:mm:ss').format('HH:mm:ss'),
             wb_process,
             wb_nomeRec: recurso,
