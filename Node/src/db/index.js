@@ -2,12 +2,7 @@ const express = require('express');
 const app = express();
 const mysql = require('mysql2/promise');
 const cors = require('cors');
-/*const bodyParser = require('body-parser');
-const fs = require('fs');
-const { exec } = require('child_process');
-const path = require('path');
-//const printer = require("node-printer");
-//console.log(typeof printer.printDirect);*/
+
 
 
 const port = 9002;
@@ -89,6 +84,7 @@ app.post('/apontamento', async (req, res) => {
     const qtdPrev = result[0].wb_qtdPrev || 0;
     let newQtdProd = currentQtdProd + wb_qtdProd;
     let newStsGt = 'L';
+
     
     // Determinar o novo status wb_stsGt
     if (newQtdProd >= 1 && newQtdProd < qtdPrev) {

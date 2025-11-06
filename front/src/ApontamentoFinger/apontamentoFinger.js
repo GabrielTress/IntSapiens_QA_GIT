@@ -19,7 +19,7 @@ function ApontamentoFinger() {
   const [wb_numSeq, setWb_numSeq] = useState(linhaSelecionada?.wb_numSeq || '');
   const [wb_numProd, setWb_numProd] = useState(linhaSelecionada?.wb_numProd || '');
   const [wb_qtdPrev, setWb_qtdPrev] = useState(linhaSelecionada?.wb_qtdPrev || 0);
-  const [wb_qtdSaldo, setWb_qtdSaldo] = useState(linhaSelecionada?.wb_qtdSaldo || '');
+  const [wb_qtdSaldo, setWb_qtdSaldo] = useState(linhaSelecionada?.wb_qtdSaldo || ''); 
   const [quantidadeTotalProduzida, setQuantidadeTotalProduzida] = useState(0);
   const [wb_temFsc, setWb_temFsc] = useState(linhaSelecionada?.wb_temFsc || 0);
   const [wb_qtdProd, setWb_qtdProd] = useState('');
@@ -508,7 +508,9 @@ function ApontamentoFinger() {
               <button className="button" onClick={handleVoltar}>
                   Voltar
              </button>
-       </div>    
+        <h4>Saldo: {wb_qtdSaldo}</h4>        
+       </div> 
+       
       <table className="tableFinger">
         <thead>
           <tr>

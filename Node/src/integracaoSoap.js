@@ -5,8 +5,9 @@ const recursoService = require('./services/recursoService');
 const dadosProduto = require('./services/dadosProdutoService');
 const etiqueta = require('./services/etiquetaService');
 const postComponente = require('./services/postComponenteService');
-const obterEtiquetaFinger = require('./services/obterEtiquetaFingerService');
-const postConfirmaEtiquetaFinger = require('./services/postConfirmaEtq');
+const obterCadastroInspQualidade = require('./services/obterCadastroInspQualidade');
+const obterEtiquetaFingerService = require('./services/obterEtiquetaFingerService');
+const postConfirmaEtq = require('./services/postConfirmaEtq');
 
 // Função para obter a data e hora atual formatada
 const getCurrentDateTime = () => {
@@ -73,3 +74,35 @@ cron.schedule('*/15 * * * *', async () => {
         console.error('Error in postComponenteService:', error.message || error);
     }
 });
+
+// Agendamento para buscar dados do checkList a cada 60 minutos
+cron.schedule('*/60 * * * *', async () => {
+    try {
+        await obterCadastroInspQualidade.getObterCadastroInspQualidade();
+        console.log('Get Inspeção de Qualidade completed at', getCurrentDateTime());
+    } catch (error) {
+        console.error('Error in GET Inspeção de Qualidade:', error.message || error);
+    }
+});
+
+// Agendamento para buscar etiquetas Finger a cada 30 minutos
+cron.schedule('*/30 * * * *', async () => {
+    try {
+        await obterEtiquetaFingerService.getObterEtiquetaFingerFromSapiens();
+        console.log('GET Etiquetas Finger completed at', getCurrentDateTime());
+    } catch (error) {
+        console.error('Error in GET Etiquetas Finger:', error.message || error);
+    }
+});
+
+// Agendamento para enviar etiquetas Finger a cada 15 minutos
+cron.schedule('*/15 * * * *', async () => {
+    try {
+        await postConfirmaEtq.postConfirmaEtiquetaForSapiens();
+        console.log('POST Etiquetas Finger completed at', getCurrentDateTime());
+    } catch (error) {
+        console.error('Error in POST Etiquetas Finger:', error.message || error);
+    }
+});
+
+

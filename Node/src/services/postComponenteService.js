@@ -112,6 +112,6 @@ module.exports = { postApontamentoComponentesForSapiens };
 
 
 // RODANDO EM OUTRA PORTA PARA NAO DAR CONFLITO COM A PORTA 3002 DO BANCO
-app.listen(9009, () => {
-    console.log('Server running on port 9009');
+app.listen(9020, () => {
+    console.log('Server running on port 9020');
 });

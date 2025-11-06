@@ -77,7 +77,7 @@ const getObterCadastroInspQualidade = async () => {
 
 
                 } else {
-                    console.warn(`Nenhum dado retornado para produto ${WB_NUMPROD}`);
+                    //console.warn(`Nenhum dado retornado para produto ${WB_NUMPROD}`);
                 }
             } catch (error) {
                 console.error("Erro ao obter cadastro:", error);

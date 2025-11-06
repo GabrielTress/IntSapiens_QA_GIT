@@ -4,7 +4,6 @@ const mysql = require('mysql2/promise');
 const cors = require('cors');
 const moment = require('moment');
 
-
 const app = express();
 
 const db = mysql.createPool({
@@ -17,16 +16,36 @@ const db = mysql.createPool({
 app.use(cors());
 app.use(express.json());
 
-
-
 const sapiensWsdlUrl = 'http://192.168.0.1:8080/g5-senior-services/sapiens_Syncintegracao_vedois?wsdl';
 const metodoObterEtiqueta = "ObtEtqPro";
+
+
+// 🔹 Função para deletar registros com WB_STSGT = 'F'
+/*async function deletarLinhasComStatusF() {
+    try {
+        const [result] = await db.query(`
+            DELETE ETQ
+            FROM WB_OBTERETIQUETA AS ETQ
+            INNER JOIN WB_SEQLIST AS SEQ
+            ON ETQ.WB_NUMORP = SEQ.WB_NUMORP
+            WHERE SEQ.WB_STSGT = 'F'
+            AND SEQ.WB_NUMREC = ETQ.WB_NUMREC;
+        `);
+        //console.log(`🗑️ ${result.affectedRows} linhas deletadas (WB_STSGT = 'F')`);
+    } catch (error) {
+        console.error('❌ Erro ao deletar linhas com WB_STSGT = F:', error);
+    }
+}*/
+
 
 const getObterEtiquetaFingerFromSapiens = async () => {
     let connection;
 
     try {
         const client = await soap.createClientAsync(sapiensWsdlUrl);
+
+        // 🔹 Etapa 1: Remove registros inválidos antes de iniciar a transação
+        //await deletarLinhasComStatusF();
 
         connection = await db.getConnection();
         await connection.beginTransaction();
@@ -39,7 +58,6 @@ const getObterEtiquetaFingerFromSapiens = async () => {
         `);
 
         for (const { WB_NUMORP, WB_NUMREC, WB_NUMORI } of rows) {
-       
             const params = {
                 user: 'apontamentoweb',
                 password: 'apontamentoweb',
@@ -48,19 +66,14 @@ const getObterEtiquetaFingerFromSapiens = async () => {
                     codEmp: 1,
                     codOri: WB_NUMORI,
                     numOrp: WB_NUMORP
-                    
                 }
             };
-
-            console.log(`Chamando método ${metodoObterEtiqueta} para OP ${WB_NUMORP}...`);
 
             try {
                 const [result] = await client[`${metodoObterEtiqueta}Async`](params);
                 const dadosRecebidos = result?.result?.lstEtq;
 
                 if (dadosRecebidos) {
-                    console.log(`Dados recebidos para OP ${WB_NUMORP}:`, dadosRecebidos);
-
                     const lista = Array.isArray(dadosRecebidos)
                         ? dadosRecebidos
                         : [dadosRecebidos];
@@ -68,11 +81,9 @@ const getObterEtiquetaFingerFromSapiens = async () => {
                     for (const item of lista) {
                         await verificarEAtualizarRegistro(item, connection, WB_NUMORP, WB_NUMREC, WB_NUMORI);
                     }
-                } else {
-                    console.warn(`Nenhum dado retornado para OP ${WB_NUMORP}`);
                 }
             } catch (error) {
-                console.error(`Erro ao buscar dados da OP ${WB_NUMORP}:`, error);
+                console.error(`❌ Erro ao buscar dados da OP ${WB_NUMORP}:`, error);
             }
         }
 
@@ -81,13 +92,14 @@ const getObterEtiquetaFingerFromSapiens = async () => {
     } catch (error) {
         if (connection) {
             await connection.rollback();
-            console.error('Transação ObterEtiqueta revertida devido a erro.');
+            console.error('⚠️ Transação ObterEtiqueta revertida devido a erro.');
         }
-        console.error('Erro geral:', error);
+        console.error('❌ Erro geral:', error);
     } finally {
         if (connection) connection.release();
     }
 };
+
 
 const verificarEAtualizarRegistro = async (item, connection, numOrp, numRec, codOri) => {
     const numEtq = item.numEtq.replace(/^0+/, '');
@@ -104,12 +116,9 @@ const verificarEAtualizarRegistro = async (item, connection, numOrp, numRec, cod
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
                 [1, numOrp, codOri, numRec, numEtq, seqEtq, qtdEtq, 'N']
             );
-            console.log(`Registro ${numEtq} inserido com sucesso.`);
         } catch (error) {
             console.error(`Erro ao inserir registro ${numEtq}:`, error);
         }
-    } else {
-        console.log(`Registro ${numEtq} já existe e não será inserido novamente.`);
     }
 };
 
@@ -123,7 +132,7 @@ const verificarSeRegistroExiste = async (numEtq, connection) => {
 
 module.exports = { getObterEtiquetaFingerFromSapiens };
 
-// RODANDO EM OUTRA PORTA PARA NAO DAR CONFLITO COM A PORTA 3002 DO BANCO
+// 🔹 Porta do servidor
 app.listen(9015, () => {
     console.log('Server running on port 9015');
 });
