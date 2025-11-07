@@ -222,8 +222,8 @@ function ApontamentoFinger() {
             codRot: item.WB_CODROT,
             sitEin: 1,
             tipInp: 'I',
-            sitAva: 'N',
-            notEiv: 5,
+            sitAva: 'A',
+            notEiv: 10,
             valorDigitado: respostas[index]
           }));
     
@@ -508,7 +508,7 @@ function ApontamentoFinger() {
               <button className="button" onClick={handleVoltar}>
                   Voltar
              </button>
-        <h4>Saldo: {wb_qtdSaldo}</h4>        
+            
        </div> 
        
       <table className="tableFinger">
@@ -595,15 +595,15 @@ function ApontamentoFinger() {
                 <div className="ok-nok-buttons">
                   <button
                     type="button"
-                    className={respostas[index] === 'A' ? 'selected' : ''}
-                    onClick={() => handleResposta(index, 'A')}
+                    className={respostas[index] === '10' ? 'selected' : ''}
+                    onClick={() => handleResposta(index, '10')}
                   >
                     OK
                   </button>
                   <button
                     type="button"
-                    className={respostas[index] === 'R' ? 'selected nok' : 'R'}
-                    onClick={() => handleResposta(index, 'R')}
+                    className={respostas[index] === '0' ? 'selected nok' : '0'}
+                    onClick={() => handleResposta(index, '0')}
                   >
                     NOK
                   </button>
