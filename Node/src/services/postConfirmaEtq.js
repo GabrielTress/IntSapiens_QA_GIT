@@ -113,7 +113,7 @@ const postConfirmaEtiquetaForSapiens = async () => {
                         }
 
                     } catch (error) {
-                        console.error(`❌ Erro no WS ConfirmaEtq para etiqueta ${row.WB_NUMETQ}:`, error.message);
+                        console.error(`Erro no WS ConfirmaEtq para etiqueta ${row.WB_NUMETQ}:`, error.message);
                     }
                 } else {
                     console.warn(`⚠ Falha no WS ApontamentoFinger para OP ${row.WB_NUMORP}:`, result?.result?.msgRet);
