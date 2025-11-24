@@ -124,7 +124,15 @@ const Repasse = () => {
     "600210": "MDF Moldura Quadro ",
     "600211": "MDF Painel",
     "600212": "MDF Base",
-    "600213": "MDF Stool"
+    "600213": "MDF Stool",
+    "400": "Stop Aplicado Primed",
+    "410": "Stop Aplicado Raw",
+    "420": "Flat p/ Stop Primed",
+    "430": "Flat p/ Stop Raw",
+    "440": "Split Macho Primed",  
+    "450": "Split Macho Raw",
+    "460": "Split Fêmea Primed",
+    "470": "Split Fêmea Raw"
   };
   useEffect(() => {
     if (infoTecnicas?.WB_CODFAM) {
@@ -140,7 +148,7 @@ const Repasse = () => {
     const validaPerfilado = async (op) => {
       try {
         const response = await axios.get('http://192.168.0.250:9002/consultaPerfiladeira11', {
-          params: { wb_numOrp: op } // ← importante: nome do parâmetro deve ser wb_numOrp
+          params: { wb_numOrp: op } //  importante: nome do parâmetro deve ser wb_numOrp
         });
   
         const encontrado = response.data.some(item => item.WB_NUMORP == op);

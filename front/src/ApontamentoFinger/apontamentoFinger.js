@@ -241,8 +241,8 @@ function ApontamentoFinger() {
             wb_nomeRec: recurso,
             wb_operador: operador,
             operacao: 'I',
-            dasIns: 'LIV',
-            fasIns: 'LIV',
+            dasIns: 'PRD',
+            fasIns: 'PRD',
             sitEpi: 1,
             qtdRec: obterEtiqueta[etiquetaParaProcessarIndex]?.quantidade,
             codDer: 0,
@@ -498,12 +498,19 @@ function ApontamentoFinger() {
           <select className = "selectOperadorFinger" id="operador" value={operador} onChange={(e) => setOperador(e.target.value)}>
                 <option value="">Selecione...</option>
                 <option value="1321">1321 - DANIEL MUCKENBERGER</option>
-                <option value="1664">1664 - EZEQUIEL MONTEIRO</option>
+                <option value="1422">1422 - JOEL BERTOLDI</option>
                 <option value="1495">1495 - ISRAEL MONTEIRO</option>
+                <option value="1614">1614 - JOSÉ EDIVALDO</option>
                 <option value="1619">1619 - JACSON JAIR HINSCHING</option>
+                <option value="1664">1664 - EZEQUIEL MONTEIRO</option>
                 <option value="1691">1691 - MARCOS LUIZ MICHELMANN</option>
-                <option value="2051">2051 - CLEITON KLEMANN</option>
+                <option value="1889">1889 - MARCOS ANDRUCHECHEN</option>
                 <option value="1974">1974 - ANTONIO CARLOS CORREA</option>
+                <option value="2003">2003 - MACIEL LOBATO PEREIRA</option>
+                <option value="2010">2010 - RAIMUNDO CONCEIÇÃO</option>
+                <option value="2025">2025 - CARLOS MAGNO SILVA</option>
+                <option value="2051">2051 - CLEITON KLEMANN</option>
+                
           </select>
               <button className="button" onClick={handleVoltar}>
                   Voltar

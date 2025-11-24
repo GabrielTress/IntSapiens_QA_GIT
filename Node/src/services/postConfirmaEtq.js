@@ -49,7 +49,7 @@ const postConfirmaEtiquetaForSapiens = async () => {
                 await connection.beginTransaction();
 
                 // --- Monta parâmetros para o 1º WS ---
-                const params = {
+                const paramsApontamentoFinger = {
                     user: 'apontamentoweb',
                     password: 'apontamentoweb',
                     encryption: 0,
@@ -80,24 +80,38 @@ const postConfirmaEtiquetaForSapiens = async () => {
 
                 //console.log('📤 Enviando parâmetros:', params);
 
-                const [result] = await client[`${metodoApontamentoFinger}Async`](params);
+                const [result] = await client[`${metodoApontamentoFinger}Async`](paramsApontamentoFinger);
 
                 if (result?.result?.tipRet === '1') {
-                    //console.log(`✔ Apontamento OP ${row.WB_NUMORP} enviado com sucesso.`);
-
+                    //console.log(`Apontamento OP ${row.WB_NUMORP} enviado com sucesso.`);
+                    //console.log(`Sequência SEQEOQ: `, result?.result?.seqEoq);
+                    const seqEoq = result?.result?.seqEoq;
                     try {
                         const [resultEtq] = await clientEtq[`${metodoConfirmaEtq}Async`](paramsEtq);
+
                         if (resultEtq?.result?.tipRet === '1') {
+
+                            // 1° UPDATE
                             await connection.execute(
                                 `UPDATE WB_APONTAMENTOETIQUETA 
-                                 SET WB_PROCESS = 'S' 
-                                 WHERE WB_NUMETQ = ? AND WB_NUMORP = ?`,
-                                [row.WB_NUMETQ, row.WB_NUMORP]
+                                SET WB_PROCESS = 'S', WB_SEQEOQ = ? 
+                                WHERE WB_NUMETQ = ? AND WB_NUMORP = ?`,
+                                [seqEoq, row.WB_NUMETQ, row.WB_NUMORP]
                             );
+
+                            // 2° UPDATE
+                            await connection.execute(
+                                `UPDATE WB_REGISTROCHECKLIST
+                                SET WB_SEQEOQ = ? 
+                                WHERE WB_NUMSEP = ? AND WB_NUMORP = ?`,
+                                [seqEoq, row.WB_NUMETQ, row.WB_NUMORP]
+                            );
+
                             //console.log(`✔ Confirmação da etiqueta ${row.WB_NUMETQ} salva.`);
                         } else {
                             //console.warn(`⚠ Falha na confirmação da etiqueta ${row.WB_NUMETQ}:`, resultEtq?.result?.msgRet);
                         }
+
                     } catch (error) {
                         console.error(`❌ Erro no WS ConfirmaEtq para etiqueta ${row.WB_NUMETQ}:`, error.message);
                     }

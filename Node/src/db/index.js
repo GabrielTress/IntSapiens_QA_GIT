@@ -727,7 +727,7 @@ app.get('/consultaPerfiladeira11', async (req, res) => {
 
   try {
     const [results] = await connection.query(
-      `SELECT WB_NUMORP FROM WB_SEQLIST WHERE WB_NUMEMP = 1 AND WB_NUMORP = ? AND WB_NUMREC = '11' OR WB_NUMREC = '03'`,
+      `SELECT WB_NUMORP FROM WB_SEQLIST WHERE WB_NUMPROD LIKE '4%' AND WB_NUMORP = ? AND WB_NUMEMP = 1 OR WB_NUMREC = '03' OR WB_NUMREC = '11'`,
       [wb_numOrp]
     );
     res.json(results);

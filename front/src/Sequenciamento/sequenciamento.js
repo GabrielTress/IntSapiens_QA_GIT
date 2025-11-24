@@ -173,34 +173,33 @@ function Sequenciamento() {
   };
 
   const handleRealizarApontamento = () => {
-    const numRec = dadosFiltrados[linhaSelecionada].wb_numRec;
-    if (numRec === '04'){
-      navigate('/apontamentoFinger', { state: { linha: dadosFiltrados[linhaSelecionada], filtroID: inputId } });
-      
-    }
-    else if (numRec === '07'){
-      navigate('/apontamentoColadeira', { state: { linha: dadosFiltrados[linhaSelecionada], filtroID: inputId } });
-      
-    }
-    else if (linhaSelecionada !== null) {
-      navigate('/apontamento', { state: { linha: dadosFiltrados[linhaSelecionada], filtroID: inputId } });
-      
-    }
-   
-    else {
-      //alert("Selecione uma linha antes de realizar o apontamento.");
-      toast.error('Selecione uma linha!', {
-        position: "bottom-center",
-        autoClose: 2500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        className: 'custom-toast-error'
-      });
-    }
-  };
+  if (linhaSelecionada === null) {
+    toast.error('Selecione uma linha!', {
+      position: "bottom-center",
+      autoClose: 2500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      className: 'custom-toast-error'
+    });
+    return;
+  }
+
+  const linha = dadosFiltrados[linhaSelecionada];
+  const numRec = linha.wb_numRec;
+
+  if (numRec === '04') {
+    navigate('/apontamentoFinger', { state: { linha, filtroID: inputId } });
+  } 
+  /*else if (numRec === '07') {
+    navigate('/apontamentoColadeira', { state: { linha, filtroID: inputId } });
+  } */
+  else {
+    navigate('/apontamento', { state: { linha, filtroID: inputId } });
+  }
+};
 
   const handleConsumirComponentes = () => {
     if (linhaSelecionada !== null) {
@@ -387,7 +386,7 @@ function Sequenciamento() {
           <table>
             <thead>
               <tr>
-                
+                <th>Ori</th>
                 <th>OP</th>
                 <th>Seq</th>
                 <th>Ped</th>
@@ -409,7 +408,7 @@ function Sequenciamento() {
                   className={linhaSelecionada === index ? 'selected' : ''}
                   style={item.style} // Aplica o estilo diretamente no item
                 >
-                  
+                  <td>{item.wb_numOri}</td>
                   <td>{item.wb_numOrp}</td>
                   <td>{item.wb_numSeq}</td>
                   <td>{item.wb_numPed}</td>
