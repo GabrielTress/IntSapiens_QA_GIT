@@ -186,6 +186,18 @@ function ApontamentoFinger() {
   
   const handleSubmitRespostas = async () => {
 
+      // 1. Valida OP antes de salvar
+    const opExiste = await validaOp();
+
+        if (!opExiste) {
+          toast.error("OP já Finalizada!", {
+            position: "bottom-center",
+            autoClose: 2000,
+            className: "custom-toast-error"
+          });
+          return; // interrompe o fluxo do salvar
+        }
+
     const preenchido = itensChecklist.every((_, index) => {
       const resposta = respostas[index];
       return resposta !== undefined && resposta !== null && resposta !== '';
@@ -313,7 +325,7 @@ function ApontamentoFinger() {
         // Calcula a quantidade já produzida a partir do banco de dados
         const quantidadeJaProduzida = linhaSelecionada?.wb_qtdProd || 0;
         const quantidadeTotalProduzida = quantidadeJaProduzida + quantidadeProduzida;
-        const quantidadeMaximaPermitida = quantidadeOriginal * 1.3;
+        const quantidadeMaximaPermitida = quantidadeOriginal * 1.1;
 
         if (wb_numRec && wb_numOrp && etiqueta.quantidade && recurso && operador && Number(etiqueta.quantidade) > 0) {
           if (quantidadeTotalProduzida <= quantidadeMaximaPermitida) {
@@ -547,10 +559,26 @@ function ApontamentoFinger() {
               <td>
                 <FaPrint
                   className="print-icon"
-                  onClick={() => {
+                  onClick={async () => {
+                    // 1. Verifica etiqueta já processada
                     if (item.processado === 'N') {
+                      
+                      // 2. Verifica se essa etiqueta já existe no banco (NOVA VERIFICAÇÃO)
+                      const etiquetaJaExiste = await verificaSeEtiquetaJaExiste(item.etiqueta);
+
+                      if (etiquetaJaExiste) {
+                        toast.error(`${item.etiqueta} já apontada pela outra finger. Atualizar a tela !`, {
+                          position: "bottom-center",
+                          autoClose: 2000,
+                          className: 'custom-toast-error'
+                        });
+                        return; // impede que continue
+                      }
+
+                      // 3. Se passou nas verificações, processa
                       setEtiquetaParaProcessarIndex(index);
                       handleChecklistQualidade();
+
                     } else {
                       toast.error('Etiqueta já processada!', {
                         position: "bottom-center",
