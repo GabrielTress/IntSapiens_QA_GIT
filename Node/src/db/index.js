@@ -367,7 +367,11 @@ app.post('/printFinger', async (req, res) => {
     wb_nomeRec
   } = req.body;
 
-  const convertRecurso = wb_nomeRec === "04" ? "Finger 01" : "Finger 02";
+ const convertRecurso =
+  wb_nomeRec === "04" ? "Finger 01" :
+  wb_nomeRec === "05" ? "Finger 02" :
+  wb_nomeRec === "07" ? "Coladeira" :
+  "";
 
   const zpl = `^XA
           ^LS0
@@ -770,7 +774,83 @@ app.get('/checklistqualidade', async (req, res) => {
     connection.release();
   }
 });
+
 ////////////////////////////////
+
+app.get('/verificaComponentesAntesDaImpressao', async (req, res) => {
+  const { wb_numOrp, wb_numRec, wb_numOri } = req.query;
+
+  if (!wb_numOrp) {
+    return res.status(400).send('Parâmetro wb_numOrp é obrigatório');
+  }
+
+  const connection = await db.getConnection();
+  try {
+    const [results] = await connection.query(
+      'SELECT WB_NUMETQ FROM WB_COMPONENTES WHERE WB_NUMORP = ? AND WB_NUMREC = ? AND WB_NUMORI = ?',
+      [wb_numOrp, wb_numRec, wb_numOri]
+    );
+
+    res.json(results); // Vai retornar um array (vazio ou com dados)
+  } catch (err) {
+    console.error('Erro ao executar a consulta:', err);
+    res.status(500).send('Erro ao obter dados');
+  } finally {
+    connection.release();
+  }
+});
+//////////////////////////////////
+app.get('/verificaQuantidadesApontadas', async (req, res) => {
+  const { wb_numOrp, wb_numRec, wb_numOri } = req.query;
+
+  if (!wb_numOrp) {
+    return res.status(400).send('Parâmetro wb_numOrp é obrigatório');
+  }
+
+  const connection = await db.getConnection();
+  try {
+    const [results] = await connection.query(
+      'SELECT SUM(WB_QTDETQ) FROM WB_APONTAMENTOETIQUETA WHERE WB_NUMORP = ? AND WB_NUMREC = ? AND WB_NUMORI = ?',
+      [wb_numOrp, wb_numRec, wb_numOri]
+    );
+
+    res.json(results); // Vai retornar um array (vazio ou com dados)
+  } catch (err) {
+    console.error('Erro ao executar a consulta:', err);
+    res.status(500).send('Erro ao obter dados');
+  } finally {
+    connection.release();
+  }
+});
+
+
+/////////////////////////////////////
+
+//////////////////////////////////
+app.get('/saldosOp', async (req, res) => {
+  const { wb_numEmp, wb_numRec, wb_numOrp, wb_numOri, wb_numSeq } = req.query;
+
+  if (!wb_numOrp) {
+    return res.status(400).send('Parâmetro wb_numOrp é obrigatório');
+  }
+
+  const connection = await db.getConnection();
+  try {
+    const [results] = await connection.query(
+      'SELECT * FROM WB_SEQLIST WHERE WB_NUMEMP = ? AND  WB_NUMREC = ? AND  WB_NUMORP = ? AND WB_NUMORI = ? AND WB_NUMSEQ = ?',
+      [wb_numEmp, wb_numRec, wb_numOrp, wb_numOri, wb_numSeq]
+    );
+
+    res.json(results); // Vai retornar um array (vazio ou com dados)
+  } catch (err) {
+    console.error('Erro ao executar a consulta:', err);
+    res.status(500).send('Erro ao obter dados');
+  } finally {
+    connection.release();
+  }
+});
+
+///////////////////////////////////////
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`Servidor rodando em http://192.168.0.250:${port}`);

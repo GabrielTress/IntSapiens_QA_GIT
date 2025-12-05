@@ -53,6 +53,35 @@ function ApontamentoFinger() {
     }
   };
 
+  const [saldosOp, setSaldosOp] = useState({
+    qtdPrev: 0,
+    qtdProd: 0,
+    saldo: 0
+  });
+
+const carregarSaldos = async () => {
+  try {
+    const response = await axios.get('http://192.168.0.250:9002/saldosOp', {
+      params: { wb_numEmp, wb_numRec, wb_numOrp, wb_numOri, wb_numSeq }
+    });
+
+    const data = response.data[0];
+
+    setSaldosOp({
+      qtdPrev: data.WB_QTDPREV,
+      qtdProd: data.WB_QTDPROD,
+      saldo: data.WB_QTDSALDO
+    });
+
+  } catch (error) {
+    console.error("Erro ao carregar saldos:", error);
+  }
+};
+
+useEffect(() => {
+  carregarSaldos();
+}, []);
+
   useEffect(() => {
     if (!linhaSelecionada) return;
     const wb_numProdSelecionado = linhaSelecionada.wb_numProd;
@@ -197,7 +226,8 @@ function ApontamentoFinger() {
           });
           return; // interrompe o fluxo do salvar
         }
-
+  
+    
     const preenchido = itensChecklist.every((_, index) => {
       const resposta = respostas[index];
       return resposta !== undefined && resposta !== null && resposta !== '';
@@ -219,7 +249,7 @@ function ApontamentoFinger() {
       if (etiquetaParaProcessarIndex !== null) {
     
         handleProcessarEtiqueta(etiquetaParaProcessarIndex);
-    
+        
         try {
           const checklistComRespostas = itensChecklist.map((item, index) => ({
             parametro: item.WB_DESVER,
@@ -260,6 +290,8 @@ function ApontamentoFinger() {
             codDer: 0,
             
           });
+
+         
     
         } catch (error) {
           toast.error("Erro ao gravar checklist!", {
@@ -269,7 +301,8 @@ function ApontamentoFinger() {
           });
         }
       }
-    
+      await new Promise(resolve => setTimeout(resolve, 300));
+      await carregarSaldos();
       setShowChecklist(false);
       setEtiquetaParaProcessarIndex(null);
       setRespostas({});
@@ -376,12 +409,13 @@ function ApontamentoFinger() {
                 }
               
           
-                printer.send(zpl, async function() {
+               printer.send(zpl, async function() {
                   toast.success(`Etiqueta ${etiqueta.etiqueta} enviada à impressora!`, {
                     position: "bottom-center",
                     autoClose: 2000,
                     className: 'custom-toast-sucess'
                   });
+                  
           
                   await axios.post('http://192.168.0.250:9002/apontamento', {
                     wb_numEmp,
@@ -493,7 +527,8 @@ function ApontamentoFinger() {
             progress: undefined,
             className: 'custom-toast-error'
             });
-        }
+        };
+
   }
 
   return (
@@ -527,7 +562,8 @@ function ApontamentoFinger() {
               <button className="button" onClick={handleVoltar}>
                   Voltar
              </button>
-            
+             
+             Qtd OP: {saldosOp.qtdPrev} | Produzido: {saldosOp.qtdProd} | Saldo: {saldosOp.saldo}
        </div> 
        
       <table className="tableFinger">
@@ -570,6 +606,47 @@ function ApontamentoFinger() {
                         toast.error(`${item.etiqueta} já apontada pela outra finger. Atualizar a tela !`, {
                           position: "bottom-center",
                           autoClose: 2000,
+                          className: 'custom-toast-error'
+                        });
+                        return; // impede que continue
+                      }
+
+                    const verificaQuantidadesApontadas = async (numOrp, numOri, numRec) => {
+                      try {
+                        const response = await axios.get(`http://192.168.0.250:9002/verificaQuantidadesApontadas`, {
+                          params: { wb_numOrp: numOrp, wb_numOri: numOri, wb_numRec: numRec }
+                        });
+
+                        const dados = response.data;
+
+                        if (dados.length > 0) {
+                          // Pega o valor da soma
+                          const valor = parseFloat(dados[0]["SUM(WB_QTDETQ)"]) || 0;
+                          return valor;
+                        }
+
+                        return 0;
+                      } catch (error) {
+                        console.error("Erro ao verificar quantidades:", error);
+                        return 0;
+                      }
+                    };
+
+                      const quantidadeOriginal = parseFloat(wb_qtdPrev);
+                      const quantidadeProduzida = parseFloat(item.quantidade || 0);
+                      // Calcula a quantidade já produzida a partir do banco de dados
+                      const quantidadeJaProduzida = await verificaQuantidadesApontadas(
+                        wb_numOrp, 
+                        wb_numOri, 
+                        wb_numRec
+                      ) || 0;
+                      //console.log('Quantidade já produzida obtida:', quantidadeJaProduzida);
+                      const quantidadeTotalProduzida = quantidadeJaProduzida + quantidadeProduzida;
+                      const quantidadeMaximaPermitida = quantidadeOriginal * 1.1; 
+                      if (quantidadeTotalProduzida > quantidadeMaximaPermitida) {
+                          toast.error(`A quantidade ultrapassa 10% do permitido!`, {
+                          position: "bottom-center",
+                          autoClose: 5000,
                           className: 'custom-toast-error'
                         });
                         return; // impede que continue

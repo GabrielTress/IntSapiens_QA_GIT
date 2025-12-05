@@ -24,7 +24,7 @@ const sapiensWsdlUrl = 'http://192.168.0.1:8080/g5-senior-services/sapiens_Syncc
 const metodoEtiqueta = 'Etiqueta';
 
 
-const aCodFam = [200, 250, 290, 300, 301, 302, 303, 310, 311, 312, 313, 320, 330, 350];            
+const aCodFam = [200, 250, 290, 300, 301, 302, 303, 310, 311, 312, 313, 320, 330, 340, 350, 351, 352, 353, 359, 400, 410, 420, 430, 440, 450, 460, 470];            
 
                 const getEtiquetaFromSapiens = async () => {
                     let connection;

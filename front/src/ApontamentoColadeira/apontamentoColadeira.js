@@ -53,6 +53,40 @@ function ApontamentoColadeira() {
     }
   };
 
+    const handleConsumirComponentes = () => {
+        navigate('/componentes', { state: { linha: linhaSelecionada, filtroID: wb_numRec } });
+
+    };
+
+      const [saldosOp, setSaldosOp] = useState({
+        qtdPrev: 0,
+        qtdProd: 0,
+        saldo: 0
+      });
+    
+    const carregarSaldos = async () => {
+      try {
+        const response = await axios.get('http://192.168.0.250:9002/saldosOp', {
+          params: { wb_numEmp, wb_numRec, wb_numOrp, wb_numOri, wb_numSeq }
+        });
+    
+        const data = response.data[0];
+    
+        setSaldosOp({
+          qtdPrev: data.WB_QTDPREV,
+          qtdProd: data.WB_QTDPROD,
+          saldo: data.WB_QTDSALDO
+        });
+    
+      } catch (error) {
+        console.error("Erro ao carregar saldos:", error);
+      }
+    };
+    
+    useEffect(() => {
+      carregarSaldos();
+    }, []);
+
   useEffect(() => {
     if (!linhaSelecionada) return;
     const wb_numProdSelecionado = linhaSelecionada.wb_numProd;
@@ -106,6 +140,18 @@ function ApontamentoColadeira() {
     try {
       const response = await axios.get(`http://192.168.0.250:9002/apontamentoEtiqueta`, {
         params: { wb_numEtq: numEtq }
+      });
+      return response.data.length > 0; // Se existir, retorna true
+    } catch (error) {
+      console.error("Erro ao verificar se etiqueta já foi apontada:", error);
+      return false;
+    }
+  };
+
+    const verificaComponentesAntesDaImpressao = async (numOrp, numRec, numOri) => {
+    try {
+      const response = await axios.get(`http://192.168.0.250:9002/verificaComponentesAntesDaImpressao`, {
+        params: { wb_numOrp: numOrp, wb_numRec: numRec,  wb_numOri: numOri }
       });
       return response.data.length > 0; // Se existir, retorna true
     } catch (error) {
@@ -187,6 +233,18 @@ function ApontamentoColadeira() {
   
   const handleSubmitRespostas = async () => {
 
+          // 1. Valida OP antes de salvar
+        const opExiste = await validaOp();
+    
+            if (!opExiste) {
+              toast.error("OP já Finalizada!", {
+                position: "bottom-center",
+                autoClose: 2000,
+                className: "custom-toast-error"
+              });
+              return; // interrompe o fluxo do salvar
+            }
+
     const preenchido = itensChecklist.every((_, index) => {
       const resposta = respostas[index];
       return resposta !== undefined && resposta !== null && resposta !== '';
@@ -223,8 +281,8 @@ function ApontamentoColadeira() {
             codRot: item.WB_CODROT,
             sitEin: 1,
             tipInp: 'I',
-            sitAva: 'N',
-            notEiv: 5,
+            sitAva: 'A',
+            notEiv: 10,
             valorDigitado: respostas[index]
           }));
     
@@ -258,7 +316,8 @@ function ApontamentoColadeira() {
           });
         }
       }
-    
+      await new Promise(resolve => setTimeout(resolve, 300));
+      await carregarSaldos();
       setShowChecklist(false);
       setEtiquetaParaProcessarIndex(null);
       setRespostas({});
@@ -314,7 +373,7 @@ function ApontamentoColadeira() {
         // Calcula a quantidade já produzida a partir do banco de dados
         const quantidadeJaProduzida = linhaSelecionada?.wb_qtdProd || 0;
         const quantidadeTotalProduzida = quantidadeJaProduzida + quantidadeProduzida;
-        const quantidadeMaximaPermitida = quantidadeOriginal * 1.3;
+        const quantidadeMaximaPermitida = quantidadeOriginal * 1.5;
 
         if (wb_numRec && wb_numOrp && etiqueta.quantidade && operador && Number(etiqueta.quantidade) > 0) {
           if (quantidadeTotalProduzida <= quantidadeMaximaPermitida) {
@@ -333,7 +392,7 @@ function ApontamentoColadeira() {
                 comprimentoBlanks: infoTecnicas.WB_COMPRO,
                 wb_temFsc,
                 wb_numEtq: etiqueta.etiqueta,
-                wb_nomeRec: 'Coladeira',
+                wb_nomeRec: wb_numRec,
               }, { responseType: 'text' });
 
               if (!window.BrowserPrint) {
@@ -493,17 +552,16 @@ function ApontamentoColadeira() {
               <h3>Operador:</h3>    
           <select className = "selectOperadorFinger" id="operador" value={operador} onChange={(e) => setOperador(e.target.value)}>
                 <option value="">Selecione...</option>
-                <option value="1321">1321 - DANIEL MUCKENBERGER</option>
-                <option value="1664">1664 - EZEQUIEL MONTEIRO</option>
-                <option value="1495">1495 - ISRAEL MONTEIRO</option>
-                <option value="1619">1619 - JACSON JAIR HINSCHING</option>
-                <option value="1691">1691 - MARCOS LUIZ MICHELMANN</option>
-                <option value="2051">2051 - CLEITON KLEMANN</option>
-                <option value="1974">1974 - ANTONIO CARLOS CORREA</option>
+                <option value="1535">1535 - CLAUDIO CARDOSO</option>
+                <option value="1876">1876 - ARLINDO WITTHOEFT</option>
           </select>
+              <button className="button" onClick={handleConsumirComponentes}>
+                  Ler Etiquetas Blanks
+             </button>
               <button className="button" onClick={handleVoltar}>
                   Voltar
              </button>
+             Qtd OP: {saldosOp.qtdPrev} | Produzido: {saldosOp.qtdProd} | Saldo: {saldosOp.saldo}
        </div>    
       <table className="tableFinger">
         <thead>
@@ -531,25 +589,94 @@ function ApontamentoColadeira() {
                 />
               </td>
               <td>{item.processado}</td>
-              <td>
-                <FaPrint
-                  className="print-icon"
-                  onClick={() => {
-                    if (item.processado === 'N') {
-                      setEtiquetaParaProcessarIndex(index);
-                      handleChecklistQualidade();
-                    } else {
-                      toast.error('Etiqueta já processada!', {
-                        position: "bottom-center",
-                        autoClose: 2000,
-                        className: 'custom-toast-error'
-                      });
-                    }
-                  }}
-                  style={{ cursor: 'pointer', color: item.processado === 'S' ? '#999' : '#000' }}
-                  title={item.processado === 'S' ? "Já processado" : "Imprimir etiqueta"}
-                />
-              </td>
+             <td>
+                             <FaPrint
+                               className="print-icon"
+                               onClick={async () => {
+                                 // 1. Verifica etiqueta já processada
+                                 if (item.processado === 'N') {
+                                   
+                                   // 2. Verifica se essa etiqueta já existe no banco (NOVA VERIFICAÇÃO)
+                                   const etiquetaJaExiste = await verificaSeEtiquetaJaExiste(item.etiqueta);
+             
+                                   if (etiquetaJaExiste) {
+                                     toast.error(`${item.etiqueta} já apontada. Atualizar a tela !`, {
+                                       position: "bottom-center",
+                                       autoClose: 2000,
+                                       className: 'custom-toast-error'
+                                     });
+                                     return; // impede que continue
+                                   }
+                                  
+                                  const consumoBlanks = await verificaComponentesAntesDaImpressao(wb_numOrp, wb_numRec, wb_numOri);
+                                   
+                                   if (!consumoBlanks) {
+                                     toast.error(`Para realizar a impressão de etiqueta, é necessário informar os blanks utilizados !`, {
+                                       position: "bottom-center",
+                                       autoClose: 5000,
+                                       className: 'custom-toast-error'
+                                     });
+                                     return; // impede que continue
+                                   }
+
+                                  const verificaQuantidadesApontadas = async (numOrp, numOri, numRec) => {
+                                      try {
+                                        const response = await axios.get(`http://192.168.0.250:9002/verificaQuantidadesApontadas`, {
+                                          params: { wb_numOrp: numOrp, wb_numOri: numOri, wb_numRec: numRec }
+                                        });
+
+                                        const dados = response.data;
+
+                                        if (dados.length > 0) {
+                                          // Pega o valor da soma
+                                          const valor = parseFloat(dados[0]["SUM(WB_QTDETQ)"]) || 0;
+                                          return valor;
+                                        }
+
+                                        return 0;
+                                      } catch (error) {
+                                        console.error("Erro ao verificar quantidades:", error);
+                                        return 0;
+                                      }
+                                    };
+
+                                      const quantidadeOriginal = parseFloat(wb_qtdPrev);
+                                      const quantidadeProduzida = parseFloat(item.quantidade || 0);
+                                      // Calcula a quantidade já produzida a partir do banco de dados
+                                      const quantidadeJaProduzida = await verificaQuantidadesApontadas(
+                                        wb_numOrp, 
+                                        wb_numOri, 
+                                        wb_numRec
+                                      ) || 0;
+                                      //console.log('Quantidade já produzida obtida:', quantidadeJaProduzida);
+                                      const quantidadeTotalProduzida = quantidadeJaProduzida + quantidadeProduzida;
+                                      const quantidadeMaximaPermitida = quantidadeOriginal * 1.5; 
+                                      if (quantidadeTotalProduzida > quantidadeMaximaPermitida) {
+                                          toast.error(`A quantidade ultrapassa 10% do permitido!`, {
+                                          position: "bottom-center",
+                                          autoClose: 5000,
+                                          className: 'custom-toast-error'
+                                        });
+                                        return; // impede que continue
+                                      }
+
+             
+                                   // 3. Se passou nas verificações, processa
+                                   setEtiquetaParaProcessarIndex(index);
+                                   handleChecklistQualidade();
+             
+                                 } else {
+                                   toast.error('Etiqueta já processada!', {
+                                     position: "bottom-center",
+                                     autoClose: 2000,
+                                     className: 'custom-toast-error'
+                                   });
+                                 }
+                               }}
+                               style={{ cursor: 'pointer', color: item.processado === 'S' ? '#999' : '#000' }}
+                               title={item.processado === 'S' ? "Já processado" : "Imprimir etiqueta"}
+                             />
+                           </td>
             </tr>
           ))}
         </tbody>
@@ -579,7 +706,7 @@ function ApontamentoColadeira() {
                 {item.WB_DESVER}
               </td>
               <td>
-                {item.WB_CODINP2 != 'QUAL-BLANK' ? (
+                {item.WB_CODINP2 != 'QUAL-LAT' ? (
                   <input
                     type="number"
                     value={respostas[index] || ''}
@@ -589,15 +716,15 @@ function ApontamentoColadeira() {
                 <div className="ok-nok-buttons">
                   <button
                     type="button"
-                    className={respostas[index] === 'A' ? 'selected' : ''}
-                    onClick={() => handleResposta(index, 'A')}
+                    className={respostas[index] === '10' ? 'selected' : ''}
+                    onClick={() => handleResposta(index, '10')}
                   >
                     OK
                   </button>
                   <button
                     type="button"
-                    className={respostas[index] === 'R' ? 'selected nok' : 'R'}
-                    onClick={() => handleResposta(index, 'R')}
+                    className={respostas[index] === '0' ? 'selected nok' : '0'}
+                    onClick={() => handleResposta(index, '0')}
                   >
                     NOK
                   </button>

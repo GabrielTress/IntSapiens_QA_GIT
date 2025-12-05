@@ -31,7 +31,13 @@ function Componentes() {
 
 
   const handleVoltar = () => {
-    navigate('/sequenciamento', { state: { filtroID } }); // Passa o filtroID ao voltar
+  if (wb_numRec === '07') {
+    navigate('/apontamentoColadeira', { state: { linha: linhaSelecionada, filtroID: wb_numRec }});
+  } 
+  else {
+    navigate('/sequenciamento', { state: { linha: linhaSelecionada, filtroID: wb_numRec } });
+  }
+
   };
 
     // VALIDA SE A ETIQUETA JA FOI LIDA ANTERIORMENTE

@@ -193,9 +193,9 @@ function Sequenciamento() {
   if (numRec === '04') {
     navigate('/apontamentoFinger', { state: { linha, filtroID: inputId } });
   } 
-  /*else if (numRec === '07') {
+  else if (numRec === '07') {
     navigate('/apontamentoColadeira', { state: { linha, filtroID: inputId } });
-  } */
+  } 
   else {
     navigate('/apontamento', { state: { linha, filtroID: inputId } });
   }
