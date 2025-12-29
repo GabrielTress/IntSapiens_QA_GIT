@@ -33,6 +33,10 @@ function Apontamento() {
     navigate('/sequenciamento', { state: { filtroID } }); // Passa o filtroID ao voltar
   };
 
+    const handlePnc = () => {
+    navigate('/Pnc', { state: { linha: linhaSelecionada, filtroID: wb_numRec } });
+  };
+
   // VALIDA SE A OP E O RECURSO INFORMADOS ESTÃO PRESENTES NO SEQUENCIAMENTO
   const validaOp = async () => {
     try {
@@ -199,6 +203,24 @@ function Apontamento() {
         />
       </div>
       <div className="form-group">
+        <button className="button-pnc"
+         onClick={handlePnc}
+         style={{
+          backgroundColor: '#ff6b6b',
+          color: '#fff',
+          border: 'none',
+          padding: '10px 16px',
+          borderRadius: '6px',
+          cursor: 'pointer',
+          fontWeight: '500'
+          }}>
+          PNC
+        </button>
+      </div >
+      <div className="form-group">
+          O PNC deve ser informado antes de apontar a produção.
+      </div>
+      {/*<div className="form-group">
         <label>Quantidade Refugada:</label>
         <input 
           type="number" 
@@ -206,7 +228,7 @@ function Apontamento() {
           onChange={(e) => setWb_qtdRef(e.target.value)}
           className="form-input"
         />
-      </div>
+      </div>*/}
       <div>
         <p>Previsto: {wb_qtdPrev} | Saldo: {wb_qtdSaldo}</p>
       </div>

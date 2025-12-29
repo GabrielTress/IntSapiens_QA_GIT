@@ -148,7 +148,7 @@ const Repasse = () => {
     const validaPerfilado = async (op) => {
       try {
         const response = await axios.get('http://192.168.0.250:9002/consultaPerfiladeira11', {
-          params: { wb_numOrp: op } //  importante: nome do parâmetro deve ser wb_numOrp
+          params: { wb_numOrp: op } // ← importante: nome do parâmetro deve ser wb_numOrp
         });
   
         const encontrado = response.data.some(item => item.WB_NUMORP == op);
@@ -206,7 +206,8 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: linha
+        recurso: linha,
+        tipo_Apt: 'REPASSE'
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -234,7 +235,8 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: linha
+        recurso: linha,
+        tipo_Apt: 'REPASSE'
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -262,7 +264,8 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: linha
+        recurso: linha,
+        tipo_Apt: 'REPASSE'
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -290,7 +293,8 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: linha
+        recurso: linha,
+        tipo_Apt: 'REPASSE'
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -318,7 +322,8 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: linha
+        recurso: linha,
+        tipo_Apt: 'REPASSE'
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -346,7 +351,8 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: linha
+        recurso: linha,
+        tipo_Apt: 'REPASSE'
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -375,7 +381,8 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: linha
+        recurso: linha,
+        tipo_Apt: 'REPASSE'
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -403,7 +410,8 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: linha
+        recurso: linha,
+        tipo_Apt: 'REPASSE'
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -431,7 +439,8 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: linha
+        recurso: linha,
+        tipo_Apt: 'REPASSE'
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -459,7 +468,8 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: linha
+        recurso: linha,
+        tipo_Apt: 'REPASSE'
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -487,7 +497,8 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: linha
+        recurso: linha,
+        tipo_Apt: 'REPASSE'
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -515,7 +526,8 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: linha
+        recurso: linha,
+        tipo_Apt: 'REPASSE'
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -543,7 +555,8 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: linha
+        recurso: linha,
+        tipo_Apt: 'REPASSE'
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -571,7 +584,8 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: linha
+        recurso: linha,
+        tipo_Apt: 'REPASSE'
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -599,7 +613,8 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: linha
+        recurso: linha,
+        tipo_Apt: 'REPASSE'
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -627,7 +642,8 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: linha
+        recurso: linha,
+        tipo_Apt: 'REPASSE'
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -655,7 +671,8 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: linha
+        recurso: linha,
+        tipo_Apt: 'REPASSE'
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -683,7 +700,8 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: linha
+        recurso: linha,
+        tipo_Apt: 'REPASSE'
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -712,7 +730,8 @@ const Repasse = () => {
         espessura: espessuraAut,
         largura: larguraAut,
         status_largura: verificaValores(),
-        recurso: linha
+        recurso: linha,
+        tipo_Apt: 'REPASSE'
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",

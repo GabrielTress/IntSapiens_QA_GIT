@@ -13,6 +13,7 @@ import ConsultaPedido from './ConsultaPedido/consultaPedido';
 import Importar from './Importar/importar';
 import Repasse from './Repasse/repasse';
 import Reimpressao from './Reimpressao/reimpressao';
+import Pnc from './Pnc/pnc';
 import './App.css';
 
 
@@ -35,6 +36,7 @@ const App = () => {
         <Route path="/consultaDesenho" element={<ConsultaDesenho/>}/>
         <Route path="/consultaPedido" element={<ConsultaPedido/>}/>
         <Route path="/reimpressao" element={<Reimpressao/>}/>
+        <Route path="/pnc" element={<Pnc/>}/>
       
       </Routes>
     </Router>

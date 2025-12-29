@@ -219,6 +219,25 @@ function Sequenciamento() {
     }
   };
 
+  
+  const handleAbrirPnc = () => {
+    if (linhaSelecionada !== null) {
+      navigate('/Pnc', { state: { linha: dadosFiltrados[linhaSelecionada], filtroID: inputId } });
+    } else {
+      //alert("Selecione uma linha antes de realizar o apontamento.");
+      toast.error('Selecione uma linha!', {
+        position: "bottom-center",
+        autoClose: 2500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        className: 'custom-toast-error'
+      });
+    }
+  };
+
   //////////DESENHO//////////
 
   const handleAbrirDesenho = () => {
@@ -368,6 +387,11 @@ function Sequenciamento() {
           className="button"
           onClick={handleAbrirRepasse}>
           Repasse
+        </button>
+        <button 
+          className="button"
+         onClick={handleAbrirPnc}>
+          PNC
         </button>
         <button 
           className="button"

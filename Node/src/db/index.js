@@ -309,13 +309,14 @@ app.get('/pedido/:numPed', (req, res) => {
 //////////////////////////////////////////////////////////////
 
 app.post('/Repasse', async (req, res) => {
-  const { op, motivo, data, quantidade, perfil, espessura, largura, status_largura, recurso } = req.body;
-  const sqlInsert = 'INSERT INTO REPASSE (op, motivo, data, quantidade, perfil, espessura, largura, status_largura, recurso) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+  const { op, motivo, data, quantidade, perfil, espessura, largura, status_largura, recurso, tipo_Apt } = req.body;
+  const sqlInsert = 'INSERT INTO REPASSE (op, motivo, data, quantidade, perfil, espessura, largura, status_largura, recurso, tipoapt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
   const sqlSelectTotal = 'SELECT SUM(quantidade) as quantidadeTotal FROM REPASSE WHERE op = ?';
   const connection = await db.getConnection();
 
+
   try {
-    await connection.query(sqlInsert, [op, motivo, data, quantidade, perfil, espessura, largura, status_largura, recurso]);
+    await connection.query(sqlInsert, [op, motivo, data, quantidade, perfil, espessura, largura, status_largura, recurso, tipo_Apt]);
 
     const [rows] = await connection.query(sqlSelectTotal, [op]);
     const quantidadeTotal = rows[0].quantidadeTotal || 0;
@@ -842,6 +843,22 @@ app.get('/saldosOp', async (req, res) => {
     );
 
     res.json(results); // Vai retornar um array (vazio ou com dados)
+  } catch (err) {
+    console.error('Erro ao executar a consulta:', err);
+    res.status(500).send('Erro ao obter dados');
+  } finally {
+    connection.release();
+  }
+});
+
+/////////////OBTENDO MOTIVOS PNC//////////////////////
+
+app.get('/obterMotivosPnc/:wb_numRec', async (req, res) => {
+  const connection = await db.getConnection();
+  try {
+    const { wb_numRec } = req.params;
+    const [results] = await connection.query('SELECT * FROM WB_PNC WHERE WB_NUMREC = ?', [wb_numRec]);
+    res.json(results);
   } catch (err) {
     console.error('Erro ao executar a consulta:', err);
     res.status(500).send('Erro ao obter dados');
