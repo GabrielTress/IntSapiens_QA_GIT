@@ -1,6 +1,6 @@
 //const sequenciamentoService = require('./services/sequenciamentoService');
 //const recursoService = require('./services/recursoService');
-const dadosProduto = require('./services/dadosProdutoService');
+//const dadosProduto = require('./services/dadosProdutoService');
 //const etiqueta = require('./services/etiquetaService');
 //const postApontamento = require('./services/postApontamentoService');
 //const postComponente = require('./services/postComponenteService');
@@ -8,7 +8,7 @@ const dadosProduto = require('./services/dadosProdutoService');
 //const getObterCadastroInspQualidade = require('./services/obterCadastroInspQualidade');
 //const postConfirmaEtiquetaFinger = require('./services/postConfirmaEtq');
 //const postExecucaoInspecaoCheckList = require('./services/postExecucaoChecklistService');
-//const postApenasEtiqueta = require('./services/postApenasEtiqueta');
+const postApenasEtiqueta = require('./services/postApenasEtiqueta');
 
 const integracaoIsolada = async () => {
 try {
@@ -18,13 +18,13 @@ try {
         //postApontamento.postApontamentoForSapiens(),
         //sequenciamentoService.getSequenciamentoFromSapiens(),
         //recursoService.getRecursoFromSapiens(),
-        dadosProduto.getDadosProdutoFromSapiens(),
+        //dadosProduto.getDadosProdutoFromSapiens(),
         //etiqueta.getEtiquetaFromSapiens(),
         //postComponente.postApontamentoComponentesForSapiens(),
         //getObterCadastroInspQualidade.getObterCadastroInspQualidade(),
         //postConfirmaEtiquetaFinger.postConfirmaEtiquetaForSapiens(),
         //postExecucaoInspecaoCheckList.postExecucaoInspecaoForSapiens(),
-        //postApenasEtiqueta.postConfirmaEtiquetaForSapiens()
+        postApenasEtiqueta.postConfirmaEtiquetaForSapiens()
         // outras promessas, se houver
     ]);
     //console.log('Data retrieved from SAPIENS:', data);

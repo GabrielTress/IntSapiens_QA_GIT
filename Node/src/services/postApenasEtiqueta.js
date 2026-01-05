@@ -31,7 +31,7 @@ const postConfirmaEtiquetaForSapiens = async () => {
             `SELECT WB_NUMEMP, WB_NUMORI, WB_NUMORP, WB_NUMREC, WB_NUMETQ,
                     WB_QTDETQ, WB_DATAPONT, WB_OPERADOR
              FROM WB_APONTAMENTOETIQUETA
-             WHERE WB_NUMETQ = '128271'`
+             WHERE WB_NUMETQ = '131597'`
         );
 
         if (rows.length === 0) {
@@ -42,7 +42,8 @@ const postConfirmaEtiquetaForSapiens = async () => {
         for (const row of rows) {
             try {
                 await connection.beginTransaction();
-
+            
+                const dataApont = moment(row.WB_DATAPONT, 'DD-MM-YYYY HH:mm:ss');
                 const paramsEtq = {
                     user: 'apontamentoweb',
                     password: 'apontamentoweb',
@@ -50,8 +51,8 @@ const postConfirmaEtiquetaForSapiens = async () => {
                     parameters: {
                         NumEtq: row.WB_NUMETQ,
                         QtdEtq: row.WB_QTDETQ,
-                        HorEtq: moment(row.WB_DATAPONT).format('HH:mm:ss'),
-                        DatEtq: moment(row.WB_DATAPONT).format('DD/MM/YYYY')
+                        HorEtq: dataApont.format('HH:mm:ss'),
+                        DatEtq: dataApont.format('DD/MM/YYYY')
                     }
                 };
 

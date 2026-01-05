@@ -222,7 +222,7 @@ useEffect(() => {
 
 
 const handleButtonClick = async (motivo) => {
-  if (!op || !perfil || !espessuraAut || !larguraAut || !linha || !quantidade) {
+  if (!op || !perfil || !espessuraAut || !larguraAut || !linha || linha === 'Finger' || !quantidade) {
     toast.error('Preencher todos os valores!', {
             position: "bottom-center",
             autoClose: 3000,
