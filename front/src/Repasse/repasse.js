@@ -207,7 +207,8 @@ const Repasse = () => {
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha,
-        tipo_Apt: 'REPASSE'
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -236,7 +237,8 @@ const Repasse = () => {
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha,
-        tipo_Apt: 'REPASSE'
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -265,7 +267,8 @@ const Repasse = () => {
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha,
-        tipo_Apt: 'REPASSE'
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -294,7 +297,8 @@ const Repasse = () => {
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha,
-        tipo_Apt: 'REPASSE'
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -323,7 +327,8 @@ const Repasse = () => {
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha,
-        tipo_Apt: 'REPASSE'
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -352,7 +357,8 @@ const Repasse = () => {
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha,
-        tipo_Apt: 'REPASSE'
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -382,7 +388,8 @@ const Repasse = () => {
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha,
-        tipo_Apt: 'REPASSE'
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -411,7 +418,8 @@ const Repasse = () => {
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha,
-        tipo_Apt: 'REPASSE'
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -440,7 +448,8 @@ const Repasse = () => {
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha,
-        tipo_Apt: 'REPASSE'
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -469,7 +478,8 @@ const Repasse = () => {
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha,
-        tipo_Apt: 'REPASSE'
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -498,7 +508,8 @@ const Repasse = () => {
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha,
-        tipo_Apt: 'REPASSE'
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -527,7 +538,8 @@ const Repasse = () => {
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha,
-        tipo_Apt: 'REPASSE'
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -556,7 +568,8 @@ const Repasse = () => {
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha,
-        tipo_Apt: 'REPASSE'
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -585,7 +598,8 @@ const Repasse = () => {
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha,
-        tipo_Apt: 'REPASSE'
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -614,7 +628,8 @@ const Repasse = () => {
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha,
-        tipo_Apt: 'REPASSE'
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -643,7 +658,8 @@ const Repasse = () => {
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha,
-        tipo_Apt: 'REPASSE'
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -672,7 +688,8 @@ const Repasse = () => {
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha,
-        tipo_Apt: 'REPASSE'
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -701,7 +718,8 @@ const Repasse = () => {
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha,
-        tipo_Apt: 'REPASSE'
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",
@@ -731,7 +749,8 @@ const Repasse = () => {
         largura: larguraAut,
         status_largura: verificaValores(),
         recurso: linha,
-        tipo_Apt: 'REPASSE'
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec
       }).then((response) => {
         toast.success('Apontamento OK', {
           position: "bottom-center",

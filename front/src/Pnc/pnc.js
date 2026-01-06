@@ -182,9 +182,9 @@ useEffect(() => {
 const linhaMap = {
   "04": "Finger",
   "07": "Coladeira",
-  "09": "Moldureira Omil",
+  "09": "Omil",
   '11': "Perfiladeira",
-  "14": "Moldureira Leadermac",
+  "14": "Leadermac",
   "15": "Repartidora",
   "18": "Pintura 2",
   "19": "Pintura 1"
@@ -276,7 +276,8 @@ const handleButtonClick = async (motivo) => {
         largura: larguraAut,
         status_largura: verificaValores(), // ✔ nome certo
         recurso: linha,
-        tipo_Apt: 'PNC'
+        tipo_Apt: 'PNC',
+        numrec: wb_numrec
       }
 
       
@@ -311,8 +312,8 @@ const linhasDisponiveis = [
   'Finger 01',
   'Finger 02',
   'Coladeira',
-  'Moldureira Omil',
-  'Moldureira Leadermac',
+  'Omil',
+  'Leadermac',
   'Repartidora',
   'Perfiladeira',
   'Pintura 1',
