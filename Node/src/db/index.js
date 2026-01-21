@@ -309,16 +309,16 @@ app.get('/pedido/:numPed', (req, res) => {
 //////////////////////////////////////////////////////////////
 
 app.post('/Repasse', async (req, res) => {
-  const { op, numrec, motivo, data, quantidade, perfil, espessura, largura, status_largura, recurso, tipo_Apt } = req.body;
-  const sqlInsert = 'INSERT INTO REPASSE (op, numrec, motivo, data, quantidade, perfil, espessura, largura, status_largura, recurso, tipoapt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-  const sqlSelectTotal = 'SELECT SUM(quantidade) as quantidadeTotal FROM REPASSE WHERE op = ? and recurso = ?';
+  const { op, numrec, motivo, data, quantidade, perfil, espessura, largura, status_largura, recurso, tipo_Apt, qtdPrev } = req.body;
+  const sqlInsert = 'INSERT INTO REPASSE (op, numrec, motivo, data, quantidade, perfil, espessura, largura, status_largura, recurso, tipoapt, qtdprev) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+  const sqlSelectTotal = 'SELECT SUM(quantidade) as quantidadeTotal FROM REPASSE WHERE op = ? and recurso = ? and tipoapt = ?';
   const connection = await db.getConnection();
 
 
   try {
-    await connection.query(sqlInsert, [op, numrec, motivo, data, quantidade, perfil, espessura, largura, status_largura, recurso, tipo_Apt]);
+    await connection.query(sqlInsert, [op, numrec, motivo, data, quantidade, perfil, espessura, largura, status_largura, recurso, tipo_Apt, qtdPrev]);
 
-    const [rows] = await connection.query(sqlSelectTotal, [op, recurso]);
+    const [rows] = await connection.query(sqlSelectTotal, [op, recurso, tipo_Apt]);
     const quantidadeTotal = rows[0].quantidadeTotal || 0;
 
     res.status(200).json({ message: 'Dados adicionados com sucesso', quantidadeTotal });

@@ -15,6 +15,7 @@ function ApontamentoPnc() {
 const [op, setOp] = useState(linhaSelecionada?.wb_numOrp || '');
 const [numProd, setNumProd] = useState(linhaSelecionada?.wb_numProd || '');
 const [wb_numrec, setWb_NumRec] = useState(linhaSelecionada?.wb_numRec || '');
+const [wb_qtdprev, setWb_qtdprev] = useState(linhaSelecionada?.wb_qtdPrev || '');
 const [perfil, setPerfil] = useState('');
 const [linha, setLinha] = useState('');
 const [espessuraAut, setEspessuraAut] = useState('');
@@ -277,7 +278,8 @@ const handleButtonClick = async (motivo) => {
         status_largura: verificaValores(), // ✔ nome certo
         recurso: linha,
         tipo_Apt: 'PNC',
-        numrec: wb_numrec
+        numrec: wb_numrec,
+        qtdPrev: wb_qtdprev
       }
 
       
@@ -325,6 +327,7 @@ const linhasDisponiveis = [
 
 return (
   <div className="containerPnc">
+            <h2>Apontamento PNC</h2>
     <div className="input-containerPnc">
 
       {/* OP */}
