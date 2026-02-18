@@ -406,7 +406,7 @@ app.post('/printFinger', async (req, res) => {
           ^FO220,45^A0,30,30^FDProduto:^FS
           ^FO150,170^A0,110,130^FD${wb_numProd}^FS
           ^FO140,1100^BY6^BCI,80,N,N,N^FD${wb_numEtq}^FS
-          ^FO60,150^BY6^BC,80,Y,N,N^FD${wb_numEtq}^FS
+          ^FO10,150^BY6^BC,80,Y,Y,N^FD${wb_numEtq}^FS
           ^XZ`;
 
  try {
@@ -510,7 +510,7 @@ app.post('/printEtiquetasGeral', async (req, res) => {
           ^FO220,45^A0,30,30^FDProduto:^FS
           ^FO150,170^A0,110,130^FD${row.WB_NUMPROD}^FS
           ^FO140,1100^BY6^BCI,80,N,N,N^FD${row.WB_NUMETQ}^FS
-          ^FO60,150^BY6^BC,80,Y,N,N^FD${row.WB_NUMETQ}^FS
+          ^FO10,150^BY6^BC,80,Y,Y,N^FD${row.WB_NUMETQ}^FS
           ^XZ`;
 
     // Retorna ZPL para reimpressão

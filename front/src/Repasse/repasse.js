@@ -112,6 +112,7 @@ const Repasse = () => {
     "600111": "Painel",
     "600112": "Base",
     "600113": "Stool",
+    "600114": "Stretcher Raw",
     "600201": "MDF Flat",
     "600202": "MDF Split ",
     "600203": "MDF Crow",
