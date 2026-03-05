@@ -89,7 +89,12 @@ const postConfirmaEtiquetaForSapiens = async () => {
                     try {
                         const [resultEtq] = await clientEtq[`${metodoConfirmaEtq}Async`](paramsEtq);
 
-                        if (resultEtq?.result?.tipRet === '1') {
+                        if (resultEtq?.result?.tipRet === '1' || resultEtq?.result?.tipRet === '3') {
+
+                                // 👉 LOG específico quando for retorno 3
+                                    if (resultEtq?.result?.tipRet === '3') {
+                                        console.log(`⚠️ Retorno 3 para a OP ${row.WB_NUMORP}, avaliar SubProduto!`);
+                                    }
 
                             // 1° UPDATE
                             await connection.execute(
@@ -107,9 +112,9 @@ const postConfirmaEtiquetaForSapiens = async () => {
                                 [seqEoq, row.WB_NUMETQ, row.WB_NUMORP]
                             );
 
-                            //console.log(`✔ Confirmação da etiqueta ${row.WB_NUMETQ} salva.`);
+                            
                         } else {
-                            //console.warn(`⚠ Falha na confirmação da etiqueta ${row.WB_NUMETQ}:`, resultEtq?.result?.msgRet);
+                            
                         }
 
                     } catch (error) {

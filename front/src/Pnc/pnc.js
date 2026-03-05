@@ -170,6 +170,10 @@ const perfilMap = {
     "352": "Blanks Painel - SO",
     "353": "Blanks Painel - SO CD4",
     "359": "Blanks Painel - B SO-Com Nó",
+    "360": "Blanks Painel - RAW",
+    "361": "Blanks Painel - RAW - CD4",
+    "362": "Blanks Painel - RAW - SO",
+    "363": "Blanks Painel - RAW - SO/D4"
     
   };
 
