@@ -82,9 +82,8 @@ const postConfirmaEtiquetaForSapiens = async () => {
 
                 const [result] = await client[`${metodoApontamentoFinger}Async`](paramsApontamentoFinger);
 
-                if (result?.result?.tipRet === '1') {
-                    //console.log(`Apontamento OP ${row.WB_NUMORP} enviado com sucesso.`);
-                    //console.log(`Sequência SEQEOQ: `, result?.result?.seqEoq);
+               if (result?.result?.tipRet === '1' || result?.result?.tipRet === '3') {
+                   
                     const seqEoq = result?.result?.seqEoq;
                     try {
                         const [resultEtq] = await clientEtq[`${metodoConfirmaEtq}Async`](paramsEtq);
