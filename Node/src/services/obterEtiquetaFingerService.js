@@ -21,21 +21,20 @@ const metodoObterEtiqueta = "ObtEtqPro";
 
 
 // 🔹 Função para deletar registros com WB_STSGT = 'F'
-/*async function deletarLinhasComStatusF() {
+async function deletarLinhasComStatusF() {
     try {
         const [result] = await db.query(`
             DELETE ETQ
             FROM WB_OBTERETIQUETA AS ETQ
             INNER JOIN WB_SEQLIST AS SEQ
-            ON ETQ.WB_NUMORP = SEQ.WB_NUMORP
+                ON ETQ.WB_NUMORP = SEQ.WB_NUMORP
+               AND ETQ.WB_NUMREC = SEQ.WB_NUMREC
             WHERE SEQ.WB_STSGT = 'F'
-            AND SEQ.WB_NUMREC = ETQ.WB_NUMREC;
         `);
-        //console.log(`🗑️ ${result.affectedRows} linhas deletadas (WB_STSGT = 'F')`);
     } catch (error) {
-        console.error('❌ Erro ao deletar linhas com WB_STSGT = F:', error);
+        console.error('Erro ao deletar linhas com WB_STSGT = F:', error);
     }
-}*/
+}
 
 
 const getObterEtiquetaFingerFromSapiens = async () => {
@@ -45,7 +44,7 @@ const getObterEtiquetaFingerFromSapiens = async () => {
         const client = await soap.createClientAsync(sapiensWsdlUrl);
 
         // 🔹 Etapa 1: Remove registros inválidos antes de iniciar a transação
-        //await deletarLinhasComStatusF();
+        await deletarLinhasComStatusF();
 
         connection = await db.getConnection();
         await connection.beginTransaction();

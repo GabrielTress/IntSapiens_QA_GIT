@@ -4,17 +4,17 @@
 //const etiqueta = require('./services/etiquetaService');
 //const postApontamento = require('./services/postApontamentoService');
 //const postComponente = require('./services/postComponenteService');
-//const obterEtiquetaFinger = require ('./services/obterEtiquetaFingerService');
+const obterEtiquetaFinger = require ('./services/obterEtiquetaFingerService');
 //const getObterCadastroInspQualidade = require('./services/obterCadastroInspQualidade');
 //const postConfirmaEtiquetaFinger = require('./services/postConfirmaEtq');
 //const postExecucaoInspecaoCheckList = require('./services/postExecucaoChecklistService');
-const postApenasEtiqueta = require('./services/postApenasEtiqueta');
+//const postApenasEtiqueta = require('./services/postApenasEtiqueta');
 
 const integracaoIsolada = async () => {
 try {
     console.log('Starting test...');
     const data = await Promise.all([
-        //obterEtiquetaFinger.getObterEtiquetaFingerFromSapiens()
+        obterEtiquetaFinger.getObterEtiquetaFingerFromSapiens()
         //postApontamento.postApontamentoForSapiens(),
         //sequenciamentoService.getSequenciamentoFromSapiens(),
         //recursoService.getRecursoFromSapiens(),
@@ -24,7 +24,7 @@ try {
         //getObterCadastroInspQualidade.getObterCadastroInspQualidade(),
         //postConfirmaEtiquetaFinger.postConfirmaEtiquetaForSapiens(),
         //postExecucaoInspecaoCheckList.postExecucaoInspecaoForSapiens(),
-        postApenasEtiqueta.postConfirmaEtiquetaForSapiens()
+        //postApenasEtiqueta.postConfirmaEtiquetaForSapiens()
         // outras promessas, se houver
     ]);
     //console.log('Data retrieved from SAPIENS:', data);

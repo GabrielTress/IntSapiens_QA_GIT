@@ -5,6 +5,7 @@ const cors = require('cors');
 
 
 
+
 const port = 9002;
 
 const db = mysql.createPool({
@@ -16,6 +17,8 @@ const db = mysql.createPool({
 
 app.use(cors());
 app.use(express.json());
+
+
 
 
 
@@ -61,53 +64,38 @@ app.get('/sequenciamento', async (req, res) => {
 
 /////////INSERINDO DADOS DO APONTAMENTO////////////////
 app.post('/apontamento', async (req, res) => {
-  const {wb_numEmp, wb_numRec, wb_numOri, wb_numSeq, wb_numOrp, wb_numProd, wb_qtdProd, wb_qtdRef, wb_dtApont, wb_process } = req.body;
-
+  const { wb_numEmp, wb_numRec, wb_numOri, wb_numSeq, wb_numOrp, wb_numProd, wb_qtdProd, wb_qtdRef, wb_dtApont, wb_process } = req.body;
   const connection = await db.getConnection();
-  await connection.beginTransaction();
   try {
-    // Inserindo o novo apontamento na tabela WB_APONTAMENTO
+    await connection.beginTransaction(); // ← agora DENTRO do try
     const insertSql = 'INSERT INTO WB_APONTAMENTO (wb_numEmp, wb_numRec, wb_numOri, wb_numSeq, wb_numOrp, wb_numProd, wb_qtdProd, wb_qtdRef, wb_dtApont, wb_process) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
     await connection.query(insertSql, [wb_numEmp, wb_numRec, wb_numOri, wb_numSeq, wb_numOrp, wb_numProd, wb_qtdProd, wb_qtdRef, wb_dtApont, wb_process]);
-
-    // Obtendo os valores atuais da tabela WB_SEQLIST
+    // ← FOR UPDATE garante o lock na leitura, evitando conflito no UPDATE
     const [result] = await connection.query(
-      'SELECT wb_qtdProd, wb_qtdPrev, wb_stsGt FROM WB_SEQLIST WHERE wb_numEmp = ? AND wb_numRec = ? AND wb_numOrp = ? AND wb_numSeq = ? AND wb_numOri = ?', 
+      'SELECT wb_qtdProd, wb_qtdPrev, wb_stsGt FROM WB_SEQLIST WHERE wb_numEmp = ? AND wb_numRec = ? AND wb_numOrp = ? AND wb_numSeq = ? AND wb_numOri = ? FOR UPDATE',
       [wb_numEmp, wb_numRec, wb_numOrp, wb_numSeq, wb_numOri]
     );
-    
     if (result.length === 0) {
       throw new Error('Nenhum registro encontrado na tabela WB_SEQLIST para os valores fornecidos.');
     }
-
     const currentQtdProd = result[0].wb_qtdProd || 0;
     const qtdPrev = result[0].wb_qtdPrev || 0;
     let newQtdProd = currentQtdProd + wb_qtdProd;
     let newStsGt = 'L';
-
-    
-    // Determinar o novo status wb_stsGt
     if (newQtdProd >= 1 && newQtdProd < qtdPrev) {
       newStsGt = 'A';
     } else if (newQtdProd >= qtdPrev) {
       newStsGt = 'F';
     }
-
-    // Calcular o novo wb_qtdSaldo
     const newQtdSaldo = qtdPrev - newQtdProd;
-
-    // Atualizando a tabela WB_SEQLIST
-    const updateSql = 'UPDATE WB_SEQLIST SET wb_qtdProd = ?, wb_stsGt = ?, wb_qtdSaldo = ? WHERE wb_numEmp = ? AND wb_numRec = ? AND wb_numOrp = ? AND wb_numSeq = ? AND wb_numOri =?';
+    const updateSql = 'UPDATE WB_SEQLIST SET wb_qtdProd = ?, wb_stsGt = ?, wb_qtdSaldo = ? WHERE wb_numEmp = ? AND wb_numRec = ? AND wb_numOrp = ? AND wb_numSeq = ? AND wb_numOri = ?';
     await connection.query(updateSql, [newQtdProd, newStsGt, newQtdSaldo, wb_numEmp, wb_numRec, wb_numOrp, wb_numSeq, wb_numOri]);
-
-    // Commit a transação
     await connection.commit();
     res.status(200).json({ message: 'Apontamento e atualização realizados com sucesso!' });
   } catch (err) {
-    // Rollback em caso de erro
     await connection.rollback();
     console.error('Erro ao realizar o apontamento e atualização:', err);
-    res.status(500).send('Erro ao realizar o apontamento e atualização.');
+    res.status(500).send('Erro ao realizar o apontamento e atualização: ' + err.message);
   } finally {
     connection.release();
   }
@@ -542,24 +530,20 @@ app.get('/obterEtiquetaFinger/:wb_numOrp', async (req, res) => {
 
 //////////ATUALIZAR ETIQUETAS APOS APONTAMENTO OU ALTERAÇÂO////////////////////////
 app.put('/updateObterEtiquetaFinger', async (req, res) => {
-  const {wb_numEtq, wb_qtdProd, wb_process } = req.body;
+  const { wb_numEtq, wb_qtdProd, wb_process } = req.body;
   const connection = await db.getConnection();
   try {
-
-    // Atualizando a tabela WB_SEQLIST
+    await connection.beginTransaction(); // ALWAYS start the transaction explicitly
     const updateSql = 'UPDATE WB_OBTERETIQUETA SET WB_QTDETQ = ?, WB_PROCESS = ? WHERE WB_NUMETQ = ?';
     await connection.query(updateSql, [wb_qtdProd, wb_process, wb_numEtq]);
-
-    // Commit a transação
     await connection.commit();
     res.status(200).json({ message: 'Atualização realizada com sucesso!' });
   } catch (err) {
-    // Rollback em caso de erro
     await connection.rollback();
     console.error('Erro ao realizar atualização:', err);
     res.status(500).send('Erro ao realizar atualização.');
   } finally {
-    connection.release();
+    connection.release(); // Always release, even on error
   }
 });
 
@@ -866,6 +850,7 @@ app.get('/obterMotivosPnc/:wb_numRec', async (req, res) => {
     connection.release();
   }
 });
+
 
 ///////////////////////////////////////
 
