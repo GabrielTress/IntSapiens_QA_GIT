@@ -304,6 +304,52 @@ function Sequenciamento() {
       }
     };
 
+  const handleFerramenta = async (item) => {
+
+  const senha = prompt('Digite a senha para confirmar a ferramenta:');
+
+  if (!senha) return;
+
+  try {
+
+    const response = await axios.post(
+      'http://192.168.0.250:9002/ferramenta',
+      {
+        numemp: item.wb_numEmp,
+        numorp: item.wb_numOrp,
+        numori: item.wb_numOri,
+        numrec: item.wb_numRec,
+        numseq: item.wb_numSeq,
+        senha
+      }
+    );
+
+    toast.success(response.data.message);
+
+    setDadosFiltrados(prev =>
+      prev.map(linha =>
+        linha.wb_numOrp === item.wb_numOrp &&
+        linha.wb_numSeq === item.wb_numSeq
+          ? {
+              ...linha,
+              wb_ferramenta:
+                linha.wb_ferramenta === 'S'
+                  ? 'N'
+                  : 'S'
+            }
+          : linha
+      )
+    );
+
+  } catch (error) {
+
+    toast.error(
+      error.response?.data?.message ||
+      'Erro ao atualizar ferramenta'
+    );
+  }
+};
+
   
 
   return (
@@ -422,6 +468,7 @@ function Sequenciamento() {
                 <th>Prod</th>
                 <th>Saldo</th>
                 <th>PÇ/Hora</th>
+                <th>Ferram</th>
               </tr>
             </thead>
             <tbody>
@@ -444,6 +491,18 @@ function Sequenciamento() {
                   <td>{item.wb_qtdProd}</td>
                   <td>{item.wb_qtdSaldo}</td>
                   <td>{item.wb_pcHora}</td>
+                  <td>
+                  <button
+                    className={
+                      item.wb_ferramenta === 'S'
+                        ? 'btn-ferramenta-verde'
+                        : 'btn-ferramenta'
+                    }
+                    onClick={() => handleFerramenta(item)}
+                  >
+                    OK
+                  </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -177,6 +177,22 @@
   color: rgb(0, 0, 0); /* Altere a cor do texto */
 }
 
+.btn-ferramenta {
+  background: #999;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.btn-ferramenta-verde {
+  background: rgb(49, 214, 49);
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
 
 
 

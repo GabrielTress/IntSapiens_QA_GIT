@@ -51,7 +51,8 @@ app.get('/sequenciamento', async (req, res) => {
       wb_stsGt: row.WB_STSGT,
       wb_stsSap: row.WB_STSSAP,
       wb_seqOrder: row.WB_SEQORDER,
-      wb_temFsc: row.WB_TEMFSC
+      wb_temFsc: row.WB_TEMFSC,
+      wb_ferramenta: row.WB_FERRAMENTA
     }));
 
     res.json(mappedResults);
@@ -849,6 +850,129 @@ app.get('/obterMotivosPnc/:wb_numRec', async (req, res) => {
   } finally {
     connection.release();
   }
+});
+
+
+//////////FERRAMENTA /////////////////////////////
+
+app.post('/ferramenta', async (req, res) => {
+
+    let connection;
+
+    try {
+
+        const {
+            numemp,
+            numorp,
+            numori,
+            numrec,
+            numseq,
+            senha
+        } = req.body;
+
+        connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        if (senha !== '784512') {
+            return res.status(401).json({
+                message: 'Senha inválida'
+            });
+        }
+
+        const [rows] = await connection.execute(`
+            SELECT WB_FERRAMENTA
+            FROM WB_SEQLIST
+            WHERE
+                WB_NUMEMP = ?
+                AND WB_NUMORP = ?
+                AND WB_NUMORI = ?
+                AND WB_NUMREC = ?
+                AND WB_NUMSEQ = ?
+            LIMIT 1
+        `, [
+            numemp,
+            numorp,
+            numori,
+            numrec,
+            numseq
+        ]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                message: 'Registro não encontrado'
+            });
+        }
+
+        const statusAtual = rows[0].WB_FERRAMENTA;
+        const novoStatus =
+            statusAtual === 'S' ? 'N' : 'S';
+
+        await connection.execute(`
+            UPDATE WB_SEQLIST
+            SET WB_FERRAMENTA = ?
+            WHERE
+                WB_NUMEMP = ?
+                AND WB_NUMORP = ?
+                AND WB_NUMORI = ?
+                AND WB_NUMREC = ?
+                AND WB_NUMSEQ = ?
+        `, [
+            novoStatus,
+            numemp,
+            numorp,
+            numori,
+            numrec,
+            numseq
+        ]);
+
+        await connection.execute(`
+            INSERT INTO WB_HIST_FERRAMENTA
+            (
+                WB_NUMEMP,
+                WB_NUMORP,
+                WB_NUMORI,
+                WB_NUMREC,
+                WB_NUMSEQ,
+                STATUS_FERRAMENTA,
+                DATAHORA
+            )
+            VALUES (?, ?, ?, ?, ?, ?, NOW())
+        `, [
+            numemp,
+            numorp,
+            numori,
+            numrec,
+            numseq,
+            novoStatus
+        ]);
+
+        await connection.commit();
+
+        return res.json({
+            message:
+                novoStatus === 'S'
+                ? 'Ferramenta liberada'
+                : 'Ferramenta removida'
+        });
+
+    } catch (error) {
+
+        if (connection) {
+            await connection.rollback();
+        }
+
+        console.error(error);
+
+        return res.status(500).json({
+            message: 'Erro interno'
+        });
+
+    } finally {
+
+        if (connection) {
+            connection.release();
+        }
+    }
 });
 
 
