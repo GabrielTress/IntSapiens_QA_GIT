@@ -27,7 +27,7 @@ app.use(express.json());
 app.get('/sequenciamento', async (req, res) => {
   try {
     //const [results] = await db.query('SELECT * FROM WB_SEQLIST WHERE WB_STSGT <> "F" OR WB_QTDPROD < WB_QTDPREV OR WB_STSGT IS NULL ORDER BY WB_DATINI ASC, WB_SEQORDER ASC');
-    const [results] = await db.query('SELECT * FROM WB_SEQLIST WHERE WB_STSGT <> "F" OR WB_QTDPROD < WB_QTDPREV ORDER BY WB_DATINI ASC, WB_SEQORDER ASC');
+    const [results] = await db.query('SELECT * FROM WB_SEQLIST WHERE WB_STSGT <> "F" ORDER BY WB_DATINI ASC, WB_SEQORDER ASC');
     //console.log('Dados retornados do banco:', results); // Log para verificar os dados
 
     const mappedResults = results.map(row => ({
@@ -531,20 +531,85 @@ app.get('/obterEtiquetaFinger/:wb_numOrp', async (req, res) => {
 
 //////////ATUALIZAR ETIQUETAS APOS APONTAMENTO OU ALTERAÇÂO////////////////////////
 app.put('/updateObterEtiquetaFinger', async (req, res) => {
+
   const { wb_numEtq, wb_qtdProd, wb_process } = req.body;
-  const connection = await db.getConnection();
-  try {
-    await connection.beginTransaction(); // ALWAYS start the transaction explicitly
-    const updateSql = 'UPDATE WB_OBTERETIQUETA SET WB_QTDETQ = ?, WB_PROCESS = ? WHERE WB_NUMETQ = ?';
-    await connection.query(updateSql, [wb_qtdProd, wb_process, wb_numEtq]);
-    await connection.commit();
-    res.status(200).json({ message: 'Atualização realizada com sucesso!' });
-  } catch (err) {
-    await connection.rollback();
-    console.error('Erro ao realizar atualização:', err);
-    res.status(500).send('Erro ao realizar atualização.');
-  } finally {
-    connection.release(); // Always release, even on error
+
+  let connection;
+
+  const maxTentativas = 3;
+
+  for (let tentativa = 1; tentativa <= maxTentativas; tentativa++) {
+
+    try {
+
+      connection = await db.getConnection();
+
+      await connection.beginTransaction();
+
+      const updateSql = `
+        UPDATE WB_OBTERETIQUETA
+        SET
+          WB_QTDETQ = ?,
+          WB_PROCESS = ?
+        WHERE WB_NUMETQ = ?
+      `;
+
+      await connection.query(updateSql, [
+        wb_qtdProd,
+        wb_process,
+        wb_numEtq
+      ]);
+
+      await connection.commit();
+
+      return res.status(200).json({
+        message: 'Atualização realizada com sucesso!'
+      });
+
+    } catch (err) {
+
+      if (connection) {
+        await connection.rollback();
+      }
+
+      const deadlock =
+        err.code === 'ER_LOCK_DEADLOCK';
+
+      const timeout =
+        err.code === 'ER_LOCK_WAIT_TIMEOUT';
+
+      if (
+        (deadlock || timeout) &&
+        tentativa < maxTentativas
+      ) {
+
+        console.log(
+          `[DEADLOCK] Etiqueta ${wb_numEtq} | tentativa ${tentativa} de ${maxTentativas}`
+        );
+
+        await new Promise(resolve =>
+          setTimeout(resolve, 300 * tentativa)
+        );
+
+        continue;
+      }
+
+      console.error(
+        'Erro ao realizar atualização:',
+        err
+      );
+
+      return res.status(500).send(
+        'Erro ao realizar atualização.'
+      );
+
+    } finally {
+
+      if (connection) {
+        connection.release();
+        connection = null;
+      }
+    }
   }
 });
 

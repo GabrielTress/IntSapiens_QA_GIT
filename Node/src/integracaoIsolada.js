@@ -1,7 +1,7 @@
-//const sequenciamentoService = require('./services/sequenciamentoService');
+const sequenciamentoService = require('./services/sequenciamentoService');
 //const recursoService = require('./services/recursoService');
 //const dadosProduto = require('./services/dadosProdutoService');
-const etiqueta = require('./services/etiquetaService');
+//const etiqueta = require('./services/etiquetaService');
 //const postApontamento = require('./services/postApontamentoService');
 //const postComponente = require('./services/postComponenteService');
 //const obterEtiquetaFinger = require ('./services/obterEtiquetaFingerService');
@@ -16,10 +16,10 @@ try {
     const data = await Promise.all([
         //obterEtiquetaFinger.getObterEtiquetaFingerFromSapiens()
         //postApontamento.postApontamentoForSapiens(),
-        //sequenciamentoService.getSequenciamentoFromSapiens(),
+        sequenciamentoService.getSequenciamentoFromSapiens(),
         //recursoService.getRecursoFromSapiens(),
         //dadosProduto.getDadosProdutoFromSapiens(),
-        etiqueta.getEtiquetaFromSapiens(),
+        //etiqueta.getEtiquetaFromSapiens(),
         //postComponente.postApontamentoComponentesForSapiens(),
         //getObterCadastroInspQualidade.getObterCadastroInspQualidade(),
         //postConfirmaEtiquetaFinger.postConfirmaEtiquetaForSapiens(),

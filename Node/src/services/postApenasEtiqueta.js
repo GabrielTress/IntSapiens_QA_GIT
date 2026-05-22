@@ -31,7 +31,7 @@ const postConfirmaEtiquetaForSapiens = async () => {
             `SELECT WB_NUMEMP, WB_NUMORI, WB_NUMORP, WB_NUMREC, WB_NUMETQ,
                     WB_QTDETQ, WB_DATAPONT, WB_OPERADOR
              FROM WB_APONTAMENTOETIQUETA
-             WHERE WB_NUMETQ = '131597'`
+             WHERE WB_NUMETQ = '160300'`
         );
 
         if (rows.length === 0) {

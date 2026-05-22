@@ -1,3 +1,4 @@
+
 const soap = require('soap');
 const express = require('express');
 const mysql = require('mysql2/promise');
@@ -26,30 +27,53 @@ const metodoSequenciamento = 'Sequenciamento';
 
 /*
 ======================================================
+
 WB_STSGT
 
-L = Liberado / aguardando produção
-A = Andamento / produção iniciada
-F = Finalizado / cancelado
+L = Liberado
+A = Andamento
+F = Finalizado
 
 REGRAS:
 
-L -> atualiza tudo
-A -> atualiza SOMENTE:
-     WB_DATINI
-     WB_SEQORDER
-F -> não altera nada
-Novo -> INSERT L
-L que sumiu integração -> F
+- Novo -> INSERT L
+- L -> atualiza tudo
+- A -> atualiza somente data e ordem
+- F -> IGNORA COMPLETAMENTE
+- L que sumiu do ERP -> F
+- SOAP vazio -> CANCELA TUDO
+
 ======================================================
 */
 
+function toStr(valor) {
+
+    if (
+        valor === null ||
+        valor === undefined ||
+        valor === ''
+    ) {
+        return 0;
+    }
+
+    return String(valor).trim();
+}
+
 function toInt(valor) {
-    if (valor === null || valor === undefined || valor === '') return 0;
+
+    if (
+        valor === null ||
+        valor === undefined ||
+        valor === ''
+    ) {
+        return 0;
+    }
+
     return parseInt(valor, 10) || 0;
 }
 
 function formatarData(data) {
+
     if (!data) return null;
 
     const formatos = [
@@ -61,57 +85,147 @@ function formatarData(data) {
 
     const dt = moment(data, formatos, true);
 
-    if (!dt.isValid()) return null;
+    if (!dt.isValid()) {
+        return null;
+    }
 
     return dt.format('YYYY-MM-DD');
 }
 
 async function getSequenciamentoFromSapiens() {
+
     let connection;
 
     try {
-        console.log('Iniciando sincronização Sequenciamento...');
 
-        const client = await soap.createClientAsync(sapiensWsdlUrl);
+        /*console.log('===================================');
+        console.log('INICIANDO SINCRONIZAÇÃO');
+        console.log('===================================');*/
+
+        const client =
+            await soap.createClientAsync(sapiensWsdlUrl);
 
         const params = {
             user: 'apontamentoweb',
             password: 'apontamentoweb',
             encryption: 0,
-            parameters: { codEmp: 1 }
+            parameters: {
+                codEmp: 1
+            }
         };
 
         const [result] =
             await client[`${metodoSequenciamento}Async`](params);
 
-        const dadosRecebidos = result?.result?.seqOpr;
+        /*
+        ==========================================
+        LOG SOAP
+        ==========================================
+        */
+
+        /*console.log(
+            JSON.stringify(result, null, 2)
+        );*/
+
+        /*
+        ==========================================
+        DADOS RECEBIDOS
+        ==========================================
+        */
+
+        const dadosRecebidos =
+            result?.result?.seqOpr ||
+            result?.seqOpr ||
+            [];
+
+        /*
+        ==========================================
+        TRAVA SEGURANÇA
+        ==========================================
+        */
+
+        if (
+            !dadosRecebidos ||
+            (
+                Array.isArray(dadosRecebidos) &&
+                dadosRecebidos.length === 0
+            )
+        ) {
+
+            console.log('===================================');
+            console.log('SEQUENCIAMENTO VEIO VAZIO');
+            console.log('PROCESSO CANCELADO');
+            console.log('NENHUM REGISTRO ALTERADO');
+            console.log('===================================');
+
+            return {
+                success: false,
+                message: 'SOAP vazio'
+            };
+        }
 
         connection = await db.getConnection();
+
         await connection.beginTransaction();
 
+        /*
+        ==========================================
+        CHAVES ERP
+        ==========================================
+        */
+
         const chavesRecebidas = [];
+
+        /*
+        ==========================================
+        PROCESSA REGISTRO
+        ==========================================
+        */
 
         const processarRegistro = async (item) => {
 
             const registro = {
-                numEmp: toInt(item.codEmp),
-                numRec: item.codCre,
-                numPed: toInt(item.numPed),
-                itemPed: toInt(item.seqIpd),
-                numOri: item.codOri,
-                numSeq: toInt(item.seqRot),
-                numOrp: toInt(item.numOrp),
+
+                numEmp: toStr(item.codEmp),
+
+                numRec: toStr(item.codCre),
+
+                numPed: toStr(item.numPed),
+
+                itemPed: toStr(item.seqIpd),
+
+                numOri: toStr(item.codOri),
+
+                numSeq: toStr(item.seqRot),
+
+                numOrp: toStr(item.numOrp),
+
                 numProd: item.codPro,
+
                 desProd: item.desPro,
+
                 datIni: formatarData(item.datPrv),
+
                 qtdPrev: toInt(item.qtdPrv),
+
                 qtdProd: toInt(item.qtdRea),
+
                 qtdSaldo: toInt(item.qtdSld),
+
                 pcHora: toInt(item.pecHor),
+
                 stsSap: item.sitOrp,
+
                 seqOrder: toInt(item.seqPrg),
+
                 temFsc: item.exiFSC
             };
+
+            /*
+            ==========================================
+            CHAVE PADRONIZADA
+            ==========================================
+            */
 
             const chave = [
                 registro.numEmp,
@@ -121,16 +235,31 @@ async function getSequenciamentoFromSapiens() {
                 registro.numSeq
             ].join('|');
 
+            //console.log('PROCESSANDO:', chave);
+
+            /*
+            ==========================================
+            ADICIONA CHAVE ERP
+            ==========================================
+            */
+
             chavesRecebidas.push(chave);
+
+            /*
+            ==========================================
+            PROCURA REGISTRO
+            ==========================================
+            */
 
             const [rows] = await connection.execute(`
                 SELECT WB_STSGT
                 FROM WB_SEQLIST
-                WHERE WB_NUMEMP = ?
-                  AND WB_NUMORP = ?
-                  AND WB_NUMORI = ?
-                  AND WB_NUMREC = ?
-                  AND WB_NUMSEQ = ?
+                WHERE
+                    WB_NUMEMP = ?
+                    AND WB_NUMORP = ?
+                    AND WB_NUMORI = ?
+                    AND WB_NUMREC = ?
+                    AND WB_NUMSEQ = ?
                 LIMIT 1
             `, [
                 registro.numEmp,
@@ -141,34 +270,56 @@ async function getSequenciamentoFromSapiens() {
             ]);
 
             /*
-            ====================================
+            ==========================================
             REGISTRO EXISTE
-            ====================================
+            ==========================================
             */
+
             if (rows.length > 0) {
 
-                const statusAtual = rows[0].WB_STSGT;
+                const statusAtual =
+                    rows[0].WB_STSGT;
+
+                /*console.log(
+                    'REGISTRO EXISTE:',
+                    chave,
+                    'STATUS:',
+                    statusAtual
+                );*/
 
                 /*
-                ===============================
-                STATUS F = NÃO ALTERA NADA
-                ===============================
+                ======================================
+                STATUS F
+                ======================================
                 */
+
                 if (statusAtual === 'F') {
+
+                    /*console.log(
+                        'IGNORANDO F:',
+                        chave
+                    );*/
+
                     return;
                 }
 
                 /*
-                ===============================
-                STATUS A = SOMENTE DATA / ORDEM
-                ===============================
+                ======================================
+                STATUS A
+                ======================================
                 */
+
                 if (statusAtual === 'A') {
+
+                    /*console.log(
+                        'ATUALIZANDO A:',
+                        chave
+                    );*/
 
                     await connection.execute(`
                         UPDATE WB_SEQLIST
                         SET
-                            WB_DATINI   = ?,
+                            WB_DATINI = ?,
                             WB_SEQORDER = ?
                         WHERE
                             WB_NUMEMP = ?
@@ -178,6 +329,7 @@ async function getSequenciamentoFromSapiens() {
                             AND WB_NUMSEQ = ?
                             AND WB_STSGT = 'A'
                     `, [
+
                         registro.datIni,
                         registro.seqOrder,
 
@@ -192,10 +344,16 @@ async function getSequenciamentoFromSapiens() {
                 }
 
                 /*
-                ===============================
-                STATUS L = ALTERA TUDO
-                ===============================
+                ======================================
+                STATUS L
+                ======================================
                 */
+
+                /*console.log(
+                    'ATUALIZANDO L:',
+                    chave
+                );*/
+
                 await connection.execute(`
                     UPDATE WB_SEQLIST
                     SET
@@ -219,6 +377,7 @@ async function getSequenciamentoFromSapiens() {
                         AND WB_NUMSEQ = ?
                         AND WB_STSGT = 'L'
                 `, [
+
                     registro.numPed,
                     registro.itemPed,
                     registro.numProd,
@@ -243,94 +402,135 @@ async function getSequenciamentoFromSapiens() {
             }
 
             /*
-            ====================================
+            ==========================================
             NOVO REGISTRO
-            ====================================
+            ==========================================
             */
-            await connection.execute(`
-                INSERT INTO WB_SEQLIST (
-                    WB_NUMEMP,
-                    WB_NUMREC,
-                    WB_NUMPED,
-                    WB_ITEMPED,
-                    WB_NUMORI,
-                    WB_NUMSEQ,
-                    WB_NUMORP,
-                    WB_NUMPROD,
-                    WB_DESPRO,
-                    WB_DATINI,
-                    WB_QTDPREV,
-                    WB_QTDPROD,
-                    WB_QTDSALDO,
-                    WB_PCHORA,
-                    WB_STSSAP,
-                    WB_SEQORDER,
-                    WB_TEMFSC,
-                    WB_STSGT,
-                    WB_FERRAMENTA
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `, [
-                registro.numEmp,
-                registro.numRec,
-                registro.numPed,
-                registro.itemPed,
-                registro.numOri,
-                registro.numSeq,
-                registro.numOrp,
-                registro.numProd,
-                registro.desProd,
-                registro.datIni,
-                registro.qtdPrev,
-                registro.qtdProd,
-                registro.qtdSaldo,
-                registro.pcHora,
-                registro.stsSap,
-                registro.seqOrder,
-                registro.temFsc,
-                'L',
-                'N'
-            ]);
+
+            /*console.log(
+                'NOVO REGISTRO:',
+                chave
+            );*/
+
+            const [insertResult] =
+                await connection.execute(`
+                    INSERT INTO WB_SEQLIST (
+
+                        WB_NUMEMP,
+                        WB_NUMREC,
+                        WB_NUMPED,
+                        WB_ITEMPED,
+                        WB_NUMORI,
+                        WB_NUMSEQ,
+                        WB_NUMORP,
+                        WB_NUMPROD,
+                        WB_DESPRO,
+                        WB_DATINI,
+                        WB_QTDPREV,
+                        WB_QTDPROD,
+                        WB_QTDSALDO,
+                        WB_PCHORA,
+                        WB_STSSAP,
+                        WB_SEQORDER,
+                        WB_TEMFSC,
+                        WB_STSGT,
+                        WB_FERRAMENTA
+
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `, [
+
+                    registro.numEmp,
+                    registro.numRec,
+                    registro.numPed,
+                    registro.itemPed,
+                    registro.numOri,
+                    registro.numSeq,
+                    registro.numOrp,
+                    registro.numProd,
+                    registro.desProd,
+                    registro.datIni,
+                    registro.qtdPrev,
+                    registro.qtdProd,
+                    registro.qtdSaldo,
+                    registro.pcHora,
+                    registro.stsSap,
+                    registro.seqOrder,
+                    registro.temFsc,
+                    'L',
+                    'N'
+                ]);
+
+            /*console.log(
+                'INSERT OK:',
+                insertResult.insertId
+            );*/
         };
 
         /*
+        ==========================================
         PROCESSA ERP
+        ==========================================
         */
+
         if (Array.isArray(dadosRecebidos)) {
+
             for (const item of dadosRecebidos) {
+
                 await processarRegistro(item);
             }
-        } else if (dadosRecebidos) {
+
+        } else {
+
             await processarRegistro(dadosRecebidos);
         }
 
         /*
-        ====================================
-        L QUE NÃO VEIO = F
-        ====================================
+        ==========================================
+        FINALIZA REGISTROS AUSENTES
+        ==========================================
         */
-        const [registrosL] = await connection.execute(`
-            SELECT
-                WB_NUMEMP,
-                WB_NUMORP,
-                WB_NUMORI,
-                WB_NUMREC,
-                WB_NUMSEQ
-            FROM WB_SEQLIST
-            WHERE WB_STSGT = 'L'
-        `);
+
+        /*console.log(
+            'VERIFICANDO REGISTROS AUSENTES...'
+        );*/
+
+        const [registrosL] =
+            await connection.execute(`
+                SELECT
+                    WB_NUMEMP,
+                    WB_NUMORP,
+                    WB_NUMORI,
+                    WB_NUMREC,
+                    WB_NUMSEQ
+                FROM WB_SEQLIST
+                WHERE WB_STSGT = 'L'
+            `);
 
         for (const row of registrosL) {
 
             const chaveBanco = [
-                row.WB_NUMEMP,
-                row.WB_NUMORP,
-                row.WB_NUMORI,
-                row.WB_NUMREC,
-                row.WB_NUMSEQ
+                toStr(row.WB_NUMEMP),
+                toStr(row.WB_NUMORP),
+                toStr(row.WB_NUMORI),
+                toStr(row.WB_NUMREC),
+                toStr(row.WB_NUMSEQ)
             ].join('|');
 
-            if (!chavesRecebidas.includes(chaveBanco)) {
+            /*
+            ==========================================
+            NÃO VEIO DO ERP
+            ==========================================
+            */
+
+            if (
+                !chavesRecebidas.includes(chaveBanco)
+            ) {
+
+                /*console.log(
+                    'FINALIZANDO:',
+                    chaveBanco
+                );*/
 
                 await connection.execute(`
                     UPDATE WB_SEQLIST
@@ -343,6 +543,7 @@ async function getSequenciamentoFromSapiens() {
                         AND WB_NUMSEQ = ?
                         AND WB_STSGT = 'L'
                 `, [
+
                     row.WB_NUMEMP,
                     row.WB_NUMORP,
                     row.WB_NUMORI,
@@ -352,24 +553,53 @@ async function getSequenciamentoFromSapiens() {
             }
         }
 
+        /*
+        ==========================================
+        COMMIT
+        ==========================================
+        */
+
         await connection.commit();
 
-        console.log('Sincronização concluída com sucesso.');
+        //console.log('===================================');
+        console.log('Transação Sequenciamento Concluida com Sucesso');
+        //console.log('===================================');
 
-        return result;
+        return {
+            success: true
+        };
 
     } catch (error) {
 
         if (connection) {
+
             await connection.rollback();
         }
 
-        console.error('Erro na sincronização:', error);
+        console.error('ERRO:', error);
+
+        if (error.sqlMessage) {
+
+            console.error(
+                'SQL MESSAGE:',
+                error.sqlMessage
+            );
+        }
+
+        if (error.sql) {
+
+            console.error(
+                'SQL:',
+                error.sql
+            );
+        }
+
         throw error;
 
     } finally {
 
         if (connection) {
+
             connection.release();
         }
     }
@@ -379,6 +609,7 @@ module.exports = {
     getSequenciamentoFromSapiens
 };
 
-app.listen(9004, () => {
-    console.log('Servidor rodando na porta 9004');
+app.listen(9005, () => {
+    console.log('Server running on port 9005');
 });
+

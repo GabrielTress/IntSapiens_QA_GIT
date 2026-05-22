@@ -430,11 +430,6 @@ useEffect(() => {
                     wb_process: 'N'
                   });
           
-                  await axios.put('http://192.168.0.250:9002/updateObterEtiquetaFinger', {
-                    wb_numEtq: etiqueta.etiqueta,
-                    wb_qtdProd: etiqueta.quantidade,
-                    wb_process: 'S'
-                  });
           
                   await axios.post('http://192.168.0.250:9002/apontamentoEtiqueta', {
                     wb_numEmp,
@@ -446,6 +441,12 @@ useEffect(() => {
                     wb_process: 'N',
                     wb_numEtq: etiqueta.etiqueta,
                     wb_operador: operador
+                  });
+
+                  await axios.put('http://192.168.0.250:9002/updateObterEtiquetaFinger', {
+                    wb_numEtq: etiqueta.etiqueta,
+                    wb_qtdProd: etiqueta.quantidade,
+                    wb_process: 'S'
                   });
           
                   const atualizado = [...obterEtiqueta];
