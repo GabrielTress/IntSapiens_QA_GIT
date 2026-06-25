@@ -4,135 +4,314 @@ const mysql = require('mysql2/promise');
 const cors = require('cors');
 const moment = require('moment');
 
+const logger = require('./logger');
+
 const app = express();
+
+
+// ======================================================
+// MYSQL
+// ======================================================
 
 const db = mysql.createPool({
     host: 'localhost',
     user: 'root',
     password: '',
-    database: 'projeto_qa'
+    database: 'projeto_qa',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
+
+
+// ======================================================
+// EXPRESS
+// ======================================================
 
 app.use(cors());
 app.use(express.json());
 
 
+// ======================================================
+// SOAP
+// ======================================================
 
 const sapiensWsdlUrl = 'http://192.168.0.1:8080/g5-senior-services/sapiens_Synccom.senior.g5.co.int.mpr.Madesp?wsdl';
-
-
 const metodoRecurso = 'Recurso';
 
+const empresas = [1, 3];
 
 const getRecursoFromSapiens = async () => {
+
     let connection;
+
     try {
-        //console.log('Creating SOAP client...');
+
+        /*logger.info(
+            `[RECURSO] Iniciando sincronização em ${moment().format('DD/MM/YYYY HH:mm:ss')}`
+        );*/
+
+
+        // ======================================================
+        // SOAP CLIENT
+        // =====================================================
         const client = await soap.createClientAsync(sapiensWsdlUrl);
-        //console.log('SOAP client created successfully');
-
-        const params = {
-            user: 'apontamentoweb',
-            password: 'apontamentoweb',
-            encryption: 0,
-            parameters: {
-                codEmp: 1
-            }
-        };
-
-        console.log(`Calling method ${metodoRecurso}...`);
-        const [result] = await client[`${metodoRecurso}Async`](params);
-        //console.log('SOAP response:', result);
-
-        const dadosRecebidos = result.result.lstRec;
-        //console.log("Dados Recebidos:", dadosRecebidos);
-
+        // ======================================================
+        // CONEXÃO MYSQL
+        // ======================================================
         connection = await db.getConnection();
         await connection.beginTransaction();
+        // ======================================================
+        // ARRAY ACUMULADOR
+        // ======================================================
+        const todosDados = [];
+        // ======================================================
+        // LOOP EMPRESAS
+        // ======================================================
 
-        //console.log(dadosRecebidos);
-        //Deletar registros com base na condição especificada
-            await connection.execute(
-            'DELETE FROM WB_RECURSO'
-            );
+        for (const codEmp of empresas) {
 
-            const verificarSeRegistroExiste = async (item) => {
-                const { codEmp, codCre, desCre, abrCre } = item;
-                const [rows] = await connection.execute(
-                    'SELECT * FROM WB_RECURSO WHERE WB_CODEMP = ? AND WB_IDREC = ?',
-                    [codEmp, codCre]
+            try {
+
+                /*logger.info(
+                    `[RECURSO] Buscando recursos empresa ${codEmp}`
+                );*/
+                // ======================================================
+                // PARAMS SOAP
+                // ======================================================
+
+                const params = {
+
+                    user: 'apontamentoweb',
+                    password: 'apontamentoweb',
+                    encryption: 0,
+                    parameters: {
+                        codEmp: [codEmp]
+                    }
+                };
+
+                // ======================================================
+                // SOAP REQUEST
+                // ======================================================
+                const [result] =
+                    await client[`${metodoRecurso}Async`](params);
+                // =====================================================
+                // DADOS RECEBIDOS
+                // ======================================================
+                const dadosRecebidos = result?.result?.lstRec;
+                // ======================================================
+                // VALIDA RETORNO
+                // ======================================================
+
+                if (!dadosRecebidos) {
+
+                    /*logger.warn(
+                        `[RECURSO] Empresa ${codEmp} retornou vazio`
+                    );*/
+
+                    continue;
+
+                }
+                // ======================================================
+                // ADICIONA AO ARRAY
+                // ======================================================
+                if (Array.isArray(dadosRecebidos)) {
+
+                    todosDados.push(...dadosRecebidos);
+
+                } else {
+                    todosDados.push(dadosRecebidos);
+                }
+                /*logger.info(
+                    `[RECURSO] Empresa ${codEmp} processada com sucesso`
+                );*/
+            } catch (error) {
+
+                logger.error(
+                    `[RECURSO] Erro empresa ${codEmp}: ${error.stack || error.message || error}`
                 );
-                return rows.length > 0; // Retorna true se o registro existe
-            };
+            }
+        }
+        // ======================================================
+        // VALIDA RETORNO TOTAL
+        // ======================================================
 
-            const verificarEAtualizarRegistro = async (item) => {
+        if (todosDados.length === 0) {
+            /*logger.error(
+                `[RECURSO] Nenhum dado retornado do SOAP. DELETE cancelado.`
+            );*/
+            await connection.rollback();
+            return;
+        }
+        // ======================================================
+        // DELETE SOMENTE SE EXISTIR DADOS
+        // ======================================================
+
+        await connection.execute(
+            'DELETE FROM WB_RECURSO'
+        );
+       /* logger.info(
+            `[RECURSO] Tabela WB_RECURSO limpa com sucesso`
+        );*/
+        // ======================================================
+        // VERIFICA EXISTÊNCIA
+        // ======================================================
+
+        const verificarSeRegistroExiste = async (item) => {
+
+            const { codEmp, codCre } = item;
+
+            const [rows] = await connection.execute(
+
+                `SELECT *
+                 FROM WB_RECURSO
+                 WHERE WB_CODEMP = ?
+                 AND WB_IDREC = ?`,
+
+                [
+                    codEmp,
+                    codCre
+                ]
+
+            );
+            return rows.length > 0;
+        };
+
+
+        // ======================================================
+        // INSERT / UPDATE
+        // ======================================================
+
+        const verificarEAtualizarRegistro = async (item) => {
+            try {
                 const codEmp = parseInt(item.codEmp, 10);
-                //const codCre = parseInt(item.codEmp, 10);
-
                 const codCre = item.codCre;
                 const desCre = item.desCre;
                 const abrCre = item.abrCre;
+                // ======================================================
+                // VALIDA CAMPOS
+                // ======================================================
+                if (!codEmp || !codCre) {
 
-            
-                // Verifica se o registro já existe
-                const registroExiste = await verificarSeRegistroExiste(item);
-                
-                if (!registroExiste) {
-                    try {
-                        await connection.execute(
-                            'INSERT INTO WB_RECURSO (WB_CODEMP, WB_IDREC, WB_ABREVREC, WB_DESCREC) VALUES (?, ?, ?, ?)',
-                            [codEmp, codCre, abrCre, desCre]
-                        );
-                        //console.log(`Registro ${numOrp} inserido.`);
-                    } catch (error) {
-                        console.error(`Erro ao inserir registro Recurso ${codCre}:`, error);
-                    }
-                } else {
-                    //console.log(`Registro ${codEmp} já existe e não será inserido novamente.`);
+                    /*logger.warn(
+                        `[RECURSO] Registro inválido ignorado`
+                    );*/
+                    return;
                 }
-            };
-            
+                // ======================================================
+                // VERIFICA EXISTÊNCIA
+                // ======================================================
 
-        if (Array.isArray(dadosRecebidos)) {
-            for (const item of dadosRecebidos) {
-                await verificarEAtualizarRegistro(item);
+                const registroExiste =
+                    await verificarSeRegistroExiste(item);
+
+
+                // ======================================================
+                // INSERT
+                // ======================================================
+
+                if (!registroExiste) {
+
+                    await connection.execute(
+
+                        `INSERT INTO WB_RECURSO
+                        (
+                            WB_CODEMP,
+                            WB_IDREC,
+                            WB_ABREVREC,
+                            WB_DESCREC
+                        )
+                        VALUES (?, ?, ?, ?)`,
+
+                        [
+                            codEmp,
+                            codCre,
+                            abrCre,
+                            desCre
+                        ]
+
+                    );
+
+                }
+
+            } catch (error) {
+
+                logger.error(
+                    `[RECURSO] Erro ao inserir registro ${item.codCre}: ${error.stack || error.message || error}`
+                );
+
             }
-        } else if (dadosRecebidos) {
-            await verificarEAtualizarRegistro(dadosRecebidos);
-        } else {
-            console.log('Nenhum dado Recurso a inserir.');
+
+        };
+
+
+        // ======================================================
+        // INSERT DADOS
+        // ======================================================
+
+        for (const item of todosDados) {
+
+            await verificarEAtualizarRegistro(item);
+
         }
+
+
+        // ======================================================
+        // COMMIT
+        // ======================================================
 
         await connection.commit();
-        console.log('Transação Recurso concluída com sucesso.');
-        return result;
+
+        logger.info(
+            `[RECURSO] Transação concluída com sucesso`
+        );
+
     } catch (error) {
+
         if (connection) {
+
             await connection.rollback();
-            console.error('Transação Recurso revertida devido a um erro.');
+
         }
-        console.error('Erro ao buscar dados do SAPIENS:', error);
+
+        logger.error(
+            `[RECURSO] Erro geral: ${error.stack || error.message || error}`
+        );
+
         throw new Error(error);
+
     } finally {
-        if (connection) connection.release();
+
+        if (connection) {
+
+            connection.release();
+
+        }
+
     }
+
 };
 
 
-// Rota para executar o getDataFromSapiens
-app.post('/importar-sapiens', async (req, res) => {
-    try {
-        await getRecursoFromSapiens();
-        res.status(200).send('Dados atualizados com sucesso');
-    } catch (error) {
-        res.status(500).send('Erro ao atualizar dados');
-    }
-});
+// ======================================================
+// EXPORT
+// ======================================================
 
-module.exports = { getRecursoFromSapiens };
+module.exports = {
+    getRecursoFromSapiens
+};
 
 
-// RODANDO EM OUTRA PORTA PARA NAO DAR CONFLITO COM A PORTA 3002 DO BANCO
+// ======================================================
+// SERVER
+// ======================================================
+
+// RODANDO EM OUTRA PORTA PARA NÃO DAR CONFLITO
+
 app.listen(9005, () => {
-    console.log('Server running on port 9005');
+
+    logger.info(
+        `[SERVER] Recurso Service rodando na porta 9005`
+    );
+
 });

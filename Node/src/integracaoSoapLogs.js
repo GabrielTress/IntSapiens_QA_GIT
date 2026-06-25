@@ -10,7 +10,8 @@ const postComponente = require('./services/postComponenteService');
 const obterCadastroInspQualidade = require('./services/obterCadastroInspQualidade');
 const obterEtiquetaFingerService = require('./services/obterEtiquetaFingerService');
 const postConfirmaEtq = require('./services/postConfirmaEtq');
-const postExecucaoChecklistService = require('./services/postExecucaoChecklistService');
+
+
 
 
 // ======================================================
@@ -36,34 +37,23 @@ const integracaoSoap = async () => {
 
     try {
 
-        /*logger.info(
-            `[POST_APONTAMENTO] Iniciado em ${getCurrentDateTime()}`
-        );*/
+        //logger.info(`[POST_APONTAMENTO] Iniciado em ${getCurrentDateTime()}`);
 
         await postApontamento.postApontamentoForSapiens();
 
-        logger.info(
-            `[POST_APONTAMENTO] Finalizado com sucesso em ${getCurrentDateTime()}`
-        );
+        logger.info(`[POST_APONTAMENTO] Finalizado com sucesso em ${getCurrentDateTime()}`);
 
 
-        // ======================================================
-        // SEQUENCIAMENTO - 5 MINUTOS APÓS POST_APONTAMENTO
-        // ======================================================
-
+        // Executa sequenciamento 5 minutos depois
         setTimeout(async () => {
 
             try {
 
-               /* logger.info(
-                    `[SEQUENCIAMENTO] Iniciado em ${getCurrentDateTime()}`
-                );*/
+                //logger.info(`[SEQUENCIAMENTO] Iniciado em ${getCurrentDateTime()}`);
 
                 await sequenciamentoService.getSequenciamentoFromSapiens();
 
-                logger.info(
-                    `[SEQUENCIAMENTO] Finalizado com sucesso em ${getCurrentDateTime()}`
-                );
+                logger.info(`[SEQUENCIAMENTO] Finalizado com sucesso em ${getCurrentDateTime()}`);
 
             } catch (error) {
 
@@ -94,16 +84,14 @@ cron.schedule('*/27 * * * *', async () => {
 
     try {
 
-        logger.info(
-            `[CRON] Executando POST_APONTAMENTO em ${getCurrentDateTime()}`
-        );
+        //logger.info(`[CRON] Executando POST_APONTAMENTO`);
 
         await integracaoSoap();
 
     } catch (error) {
 
         logger.error(
-            `[CRON POST_APONTAMENTO] ${error.stack || error.message || error}`
+            `[POST_APONTAMENTO] ${error.stack || error.message || error}`
         );
 
     }
@@ -119,26 +107,17 @@ cron.schedule('0 17 * * 0', async () => {
 
     try {
 
-        /*logger.info(
-            `[RECURSO] Iniciado em ${getCurrentDateTime()}`
-        );*/
+        //logger.info(`[RECURSO] Iniciado em ${getCurrentDateTime()}`);
 
         await recursoService.getRecursoFromSapiens();
 
-        logger.info(
-            `[RECURSO] Finalizado com sucesso`
-        );
+        logger.info(`[RECURSO] Finalizado com sucesso`);
 
-
-       /* logger.info(
-            `[DADOS_PRODUTO] Iniciado em ${getCurrentDateTime()}`
-        );*/
+        //logger.info(`[DADOS_PRODUTO] Iniciado em ${getCurrentDateTime()}`);
 
         await dadosProduto.getDadosProdutoFromSapiens();
 
-        logger.info(
-            `[DADOS_PRODUTO] Finalizado com sucesso`
-        );
+        logger.info(`[DADOS_PRODUTO] Finalizado com sucesso`);
 
     } catch (error) {
 
@@ -159,15 +138,11 @@ cron.schedule('*/35 * * * *', async () => {
 
     try {
 
-       /* logger.info(
-            `[ETIQUETA] Iniciado em ${getCurrentDateTime()}`
-        );*/
+        //logger.info(`[ETIQUETA] Iniciado em ${getCurrentDateTime()}`);
 
         await etiqueta.getEtiquetaFromSapiens();
 
-        logger.info(
-            `[ETIQUETA] Finalizado com sucesso`
-        );
+        logger.info(`[ETIQUETA] Finalizado com sucesso`);
 
     } catch (error) {
 
@@ -188,15 +163,11 @@ cron.schedule('*/15 * * * *', async () => {
 
     try {
 
-       /* logger.info(
-            `[POST_COMPONENTE] Iniciado em ${getCurrentDateTime()}`
-        );*/
+        //logger.info(`[POST_COMPONENTE] Iniciado em ${getCurrentDateTime()}`);
 
         await postComponente.postApontamentoComponentesForSapiens();
 
-        logger.info(
-            `[POST_COMPONENTE] Finalizado com sucesso`
-        );
+        logger.info(`[POST_COMPONENTE] Finalizado com sucesso`);
 
     } catch (error) {
 
@@ -217,15 +188,11 @@ cron.schedule('*/60 * * * *', async () => {
 
     try {
 
-        /*logger.info(
-            `[INSP_QUALIDADE] Iniciado em ${getCurrentDateTime()}`
-        );*/
+        //logger.info(`[INSP_QUALIDADE] Iniciado em ${getCurrentDateTime()}`);
 
         await obterCadastroInspQualidade.getObterCadastroInspQualidade();
 
-        logger.info(
-            `[INSP_QUALIDADE] Finalizado com sucesso`
-        );
+        logger.info(`[INSP_QUALIDADE] Finalizado com sucesso`);
 
     } catch (error) {
 
@@ -246,15 +213,11 @@ cron.schedule('*/30 * * * *', async () => {
 
     try {
 
-        /*logger.info(
-            `[GET_ETIQUETAS_FINGER] Iniciado em ${getCurrentDateTime()}`
-        );*/
+        //logger.info(`[GET_ETIQUETAS_FINGER] Iniciado em ${getCurrentDateTime()}`);
 
         await obterEtiquetaFingerService.getObterEtiquetaFingerFromSapiens();
 
-        logger.info(
-            `[GET_ETIQUETAS_FINGER] Finalizado com sucesso`
-        );
+        logger.info(`[GET_ETIQUETAS_FINGER] Finalizado com sucesso`);
 
     } catch (error) {
 
@@ -275,44 +238,11 @@ cron.schedule('*/15 * * * *', async () => {
 
     try {
 
-        /*logger.info(
-            `[POST_ETIQUETAS_FINGER] Iniciado em ${getCurrentDateTime()}`
-        );*/
+        //logger.info(`[POST_ETIQUETAS_FINGER] Iniciado em ${getCurrentDateTime()}`);
 
         await postConfirmaEtq.postConfirmaEtiquetaForSapiens();
 
-        logger.info(
-            `[POST_ETIQUETAS_FINGER] Finalizado com sucesso`
-        );
-
-
-        // ======================================================
-        // CHECKLIST - 5 MINUTOS APÓS POST ETIQUETAS
-        // ======================================================
-
-        setTimeout(async () => {
-
-            try {
-
-                /*logger.info(
-                    `[POST_EXECUCAO_CHECKLIST] Iniciado em ${getCurrentDateTime()}`
-                );*/
-
-                await postExecucaoChecklistService.postExecucaoInspecaoForSapiens();
-
-                logger.info(
-                    `[POST_EXECUCAO_CHECKLIST] Finalizado com sucesso em ${getCurrentDateTime()}`
-                );
-
-            } catch (error) {
-
-                logger.error(
-                    `[POST_EXECUCAO_CHECKLIST] ${error.stack || error.message || error}`
-                );
-
-            }
-
-        }, 5 * 60 * 1000);
+        logger.info(`[POST_ETIQUETAS_FINGER] Finalizado com sucesso`);
 
     } catch (error) {
 
@@ -326,20 +256,6 @@ cron.schedule('*/15 * * * *', async () => {
 
 
 // ======================================================
-// LOG FORÇADO À MEIA-NOITE
-// GARANTE NOVO ARQUIVO DIÁRIO
-// ======================================================
-
-cron.schedule('0 0 * * *', async () => {
-
-    logger.info(
-        `[SISTEMA] Novo dia iniciado em ${getCurrentDateTime()}`
-    );
-
-});
-
-
-// ======================================================
 // INICIALIZAÇÃO
 // ======================================================
 
@@ -347,24 +263,3 @@ logger.info('=====================================================');
 logger.info('SERVIÇO DE INTEGRAÇÃO INICIADO');
 logger.info(`Data/Hora: ${getCurrentDateTime()}`);
 logger.info('=====================================================');
-
-
-// ======================================================
-// TRATAMENTO GLOBAL DE ERROS
-// ======================================================
-
-process.on('uncaughtException', (err) => {
-
-    logger.error(
-        `[UNCAUGHT_EXCEPTION] ${err.stack || err}`
-    );
-
-});
-
-process.on('unhandledRejection', (reason) => {
-
-    logger.error(
-        `[UNHANDLED_REJECTION] ${reason}`
-    );
-
-});

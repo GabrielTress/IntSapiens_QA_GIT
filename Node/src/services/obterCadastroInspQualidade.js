@@ -3,8 +3,7 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
 const moment = require('moment');
-
-
+const logger = require('./logger');
 const app = express();
 
 const db = mysql.createPool({
@@ -16,6 +15,7 @@ const db = mysql.createPool({
 
 app.use(cors());
 app.use(express.json());
+
 
 
 
@@ -80,19 +80,25 @@ const getObterCadastroInspQualidade = async () => {
                     //console.warn(`Nenhum dado retornado para produto ${WB_NUMPROD}`);
                 }
             } catch (error) {
-                console.error("Erro ao obter cadastro:", error);
+                //console.error("Erro ao obter cadastro:", error);
+                logger.error(
+                    `[OBTER_CADASTRO_INSP_QUALIDADE] Erro ao obter cadastro.`
+                );
             }
             
         }
 
         await connection.commit();
-        console.log('Transação Cadastro CheckList concluída com sucesso.');
+        //console.log('Transação Cadastro CheckList concluída com sucesso.');
+        logger.info(`[INSP_QUALIDADE] Transação concluída com sucesso.`);
     } catch (error) {
         if (connection) {
             await connection.rollback();
-            console.error('Transação Cadastro CheckList revertida devido a erro.');
+            //console.error('Transação Cadastro CheckList revertida devido a erro.');
+            logger.error(`[INSP_QUALIDADE] Transação revertida devido a erro: ${error.stack || error.message || error}`);
         }
-        console.error('Erro geral:', error);
+        //console.error('Erro geral:', error);
+        logger.error(`[INSP_QUALIDADE] Erro geral: ${error.stack || error.message || error}`);
     } finally {
         if (connection) connection.release();
     }
@@ -212,40 +218,12 @@ const processarProduto = async (registroPai, connection, numEmp) => {
             }
         }
 
-        // 🔥 DELETE seguro: remove apenas registros que não existem no SOAP atual
-        /*const normalize = str => (str || '').toString().trim().toUpperCase();
-
-        // Pega todos os registros do produto no banco
-        const [registrosBanco] = await connection.execute(
-            `SELECT WB_CODPIN, WB_NUMREC, WB_DESVER 
-               FROM WB_ITENSCHECKLIST 
-              WHERE WB_NUMEMP = ? AND WB_CODPIN = ?`,
-            [numEmp, registroPai.codPin]
-        );
-
-        // Cria Set de registros SOAP apenas com codPin + desVer
-        const registrosSOAP = new Set(
-            registrosCompletos.map(item => `${normalize(item.codPin)}|${normalize(item.desVer)}`)
-        );
-
-        // DELETE somente se não estiver no Set SOAP
-        for (const regBanco of registrosBanco) {
-            const chaveBanco = `${normalize(regBanco.WB_CODPIN)}|${normalize(regBanco.WB_DESVER)}`;
-            if (!registrosSOAP.has(chaveBanco)) {
-                console.log(`      🗑️ Excluído: ${regBanco.WB_CODPIN} - ${regBanco.WB_DESVER} - ${regBanco.WB_NUMREC}`);
-                await connection.execute(
-                    `DELETE FROM WB_ITENSCHECKLIST WHERE WB_CODPIN = ? AND WB_DESVER = ? AND WB_NUMREC = ?`,
-                    [regBanco.WB_CODPIN, regBanco.WB_DESVER, regBanco.WB_NUMREC]
-                );
-            } else {
-                console.log(`      ⏩ Mantido: ${regBanco.WB_CODPIN} - ${regBanco.WB_DESVER} - ${regBanco.WB_NUMREC}`);
-            }
-        }*/
-
-        //console.log(`✅ Concluído processamento do registro PAI: ${registroPai.codPin}\n`);
 
     } catch (error) {
-        console.error("Erro ao processar produto:", error);
+        //console.error("Erro ao processar produto:", error);
+        logger.error(
+            `[OBTER_CADASTRO_INSP_QUALIDADE] Erro ao processar produto: ${error.stack || error.message || error}`
+        );
     }
 };
   

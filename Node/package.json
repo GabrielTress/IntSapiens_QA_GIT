@@ -19,6 +19,8 @@
     "node-fetch": "^3.3.2",
     "node-printer": "^1.0.4",
     "soap": "^1.1.0",
-    "usb": "^2.15.0"
+    "usb": "^2.15.0",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0"
   }
 }

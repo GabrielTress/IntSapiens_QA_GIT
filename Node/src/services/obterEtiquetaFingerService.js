@@ -3,6 +3,7 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
 const moment = require('moment');
+const logger = require('./logger');
 
 const app = express();
 
@@ -15,6 +16,8 @@ const db = mysql.createPool({
 
 app.use(cors());
 app.use(express.json());
+
+
 
 const sapiensWsdlUrl = 'http://192.168.0.1:8080/g5-senior-services/sapiens_Syncintegracao_vedois?wsdl';
 const metodoObterEtiqueta = "ObtEtqPro";
@@ -32,7 +35,8 @@ async function deletarLinhasComStatusF() {
             WHERE SEQ.WB_STSGT = 'F'
         `);
     } catch (error) {
-        console.error('Erro ao deletar linhas com WB_STSGT = F:', error);
+        //console.error('Erro ao deletar linhas com WB_STSGT = F:', error);
+        logger.error(`[OBTER_ETIQUETA_FINGER] Erro ao deletar linhas com WB_STSGT = F: ${error.stack || error.message || error}`);
     }
 }
 
@@ -82,18 +86,22 @@ const getObterEtiquetaFingerFromSapiens = async () => {
                     }
                 }
             } catch (error) {
-                console.error(`❌ Erro ao buscar dados da OP ${WB_NUMORP}:`, error);
+                //console.error(`Erro ao buscar dados da OP ${WB_NUMORP}:`, error);
+                logger.error(`[OBTER_ETIQUETA_FINGER] Erro ao buscar dados da OP ${WB_NUMORP}: ${error.stack || error.message || error}`);
             }
         }
 
         await connection.commit();
-        console.log('Transação ObterEtiqueta concluída com sucesso.');
+        //console.log('Transação ObterEtiqueta concluída com sucesso.');
+        logger.info(`[GET_ETIQUETAS_FINGER] Transação concluída com sucesso.`);
     } catch (error) {
         if (connection) {
             await connection.rollback();
-            console.error('⚠️ Transação ObterEtiqueta revertida devido a erro.');
+            //console.error('Transação ObterEtiqueta revertida devido a erro.');
+            logger.error(`[GET_ETIQUETAS_FINGER] Transação revertida devido a erro: ${error.stack || error.message || error}`);
         }
-        console.error('❌ Erro geral:', error);
+        //console.error('Erro geral:', error);
+        logger.error(`[GET_ETIQUETAS_FINGER] Erro geral: ${error.stack || error.message || error}`);
     } finally {
         if (connection) connection.release();
     }
@@ -116,7 +124,10 @@ const verificarEAtualizarRegistro = async (item, connection, numOrp, numRec, cod
                 [1, numOrp, codOri, numRec, numEtq, seqEtq, qtdEtq, 'N']
             );
         } catch (error) {
-            console.error(`Erro ao inserir registro ${numEtq}:`, error);
+            //console.error(`Erro ao inserir registro ${numEtq}:`, error);
+            logger.error(
+                `[OBTER_ETIQUETA_FINGER] Erro ao inserir registro ${numEtq}: ${error.stack || error.message || error}`
+             );
         }
     }
 };
@@ -133,5 +144,6 @@ module.exports = { getObterEtiquetaFingerFromSapiens };
 
 // 🔹 Porta do servidor
 app.listen(9015, () => {
-    console.log('Server running on port 9015');
+    //console.log('Server running on port 7081');
+    logger.info(`[SERVER] Server running on port 9015`);
 });

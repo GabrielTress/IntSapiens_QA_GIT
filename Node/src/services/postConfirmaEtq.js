@@ -3,7 +3,7 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
 const moment = require('moment');
-
+const logger = require('./logger');
 const app = express();
 
 const db = mysql.createPool({
@@ -15,6 +15,8 @@ const db = mysql.createPool({
 
 app.use(cors());
 app.use(express.json());
+
+
 
 const sapiensWsdlUrl = 'http://192.168.0.1:8080/g5-senior-services/sapiens_Synccom.senior.g5.co.int.mpr.Madesp?wsdl';
 const sapiensWsdlUrlEtq = 'http://192.168.0.1:8080/g5-senior-services/sapiens_Syncintegracao_vedois?wsdl';
@@ -40,7 +42,7 @@ const postConfirmaEtiquetaForSapiens = async () => {
         );
 
         if (rows.length === 0) {
-            console.log('Nenhum registro de etiqueta a ser processado.');
+            //console.log('Nenhum registro de etiqueta a ser processado.');
             return;
         }
 
@@ -78,22 +80,23 @@ const postConfirmaEtiquetaForSapiens = async () => {
                     }
                 };
 
-                //console.log('📤 Enviando parâmetros:', params);
+                //console.log('📤 Enviando parâmetros:', paramsApontamentoFinger);
 
                 const [result] = await client[`${metodoApontamentoFinger}Async`](paramsApontamentoFinger);
 
-               if (result?.result?.tipRet === '1' || result?.result?.tipRet === '3') {
-                   
+                if (result?.result?.tipRet === '1' || result?.result?.tipRet === '3') {
+
                     const seqEoq = result?.result?.seqEoq;
                     try {
                         const [resultEtq] = await clientEtq[`${metodoConfirmaEtq}Async`](paramsEtq);
 
                         if (resultEtq?.result?.tipRet === '1' || resultEtq?.result?.tipRet === '3') {
 
-                                // 👉 LOG específico quando for retorno 3
-                                    if (resultEtq?.result?.tipRet === '3') {
-                                        console.log(`⚠️ Retorno 3 para a OP ${row.WB_NUMORP}, avaliar SubProduto!`);
-                                    }
+                            // 👉 LOG específico quando for retorno 3
+                              if (resultEtq?.result?.tipRet === '3') {
+                                //console.log(`⚠️ Retorno 3 para a OP ${row.WB_NUMORP}, avaliar SubProduto!`);
+                                logger.warn(`[CONFIRMA_ETQ] Retorno 3 para a OP ${row.WB_NUMORP}, avaliar SubProduto!`);
+                              }
 
                             // 1° UPDATE
                             await connection.execute(
@@ -111,28 +114,34 @@ const postConfirmaEtiquetaForSapiens = async () => {
                                 [seqEoq, row.WB_NUMETQ, row.WB_NUMORP]
                             );
 
-                            
+                            //console.log(`✔ Confirmação da etiqueta ${row.WB_NUMETQ} salva.`);
                         } else {
-                            
+                            //console.warn(`⚠ Falha na confirmação da etiqueta ${row.WB_NUMETQ}:`, resultEtq?.result?.msgRet);
+                            logger.error(`[CONFIRMA_ETQ] Falha na confirmação da etiqueta ${row.WB_NUMETQ}: ${resultEtq?.result?.msgRet}`);
                         }
 
                     } catch (error) {
-                        console.error(`Erro no WS ConfirmaEtq para etiqueta ${row.WB_NUMETQ}:`, error.message);
+                        //console.error(`Erro no WS ConfirmaEtq para etiqueta ${row.WB_NUMETQ}:`, error.message);
+                        logger.error(`[CONFIRMA_ETQ] Erro no WS ConfirmaEtq para etiqueta ${row.WB_NUMETQ}: ${error.stack || error.message || error}`);
                     }
                 } else {
-                    console.warn(`⚠ Falha no WS ApontamentoFinger para OP ${row.WB_NUMORP}:`, result?.result?.msgRet);
+                    //console.warn(`Falha no WS ApontamentoFinger para OP ${row.WB_NUMORP}:`, result?.result?.msgRet);
+                    logger.error(`[APONTAMENTO_FINGER] Falha no WS ApontamentoFinger para OP ${row.WB_NUMORP}: ${result?.result?.msgRet}`);
                 }
 
                 await connection.commit();
-                console.error(`✔ Transação Confirma Etiqueta concluida com sucesso.`);
+                //console.error(`Transação Confirma Etiqueta concluida com sucesso.`);
+                logger.info(`[CONFIRMA_ETQ] Transação concluída com sucesso para etiqueta`);
             } catch (error) {
                 await connection.rollback();
                 //console.error(`❌ Erro ao processar etiqueta ${row.WB_NUMETQ}:`, error.message);
+                logger.error(`[CONFIRMA_ETQ] Erro ao processar etiqueta ${row.WB_NUMETQ}: ${error.stack || error.message || error}`);
             }
         }
 
     } catch (error) {
-        console.error('Erro geral no processamento:', error.message);
+        //console.error('Erro geral no processamento:', error.message);
+        logger.error(`[CONFIRMA_ETQ] Erro geral no processamento: ${error.stack || error.message || error}`);
     } finally {
         if (connection) connection.release();
     }
@@ -141,5 +150,6 @@ const postConfirmaEtiquetaForSapiens = async () => {
 module.exports = { postConfirmaEtiquetaForSapiens };
 
 app.listen(9009, () => {
-    console.log('Server running on port 9009');
+    //console.log('Server running on port 7082');
+    logger.info(`[SERVER] Server running on port 9009`);
 });

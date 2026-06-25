@@ -4,6 +4,7 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
 const moment = require('moment');
+const logger = require('./logger');
 
 const app = express();
 
@@ -16,6 +17,7 @@ const db = mysql.createPool({
 
 app.use(cors());
 app.use(express.json());
+
 
 const sapiensWsdlUrl = 'http://192.168.0.1:8080/g5-senior-services/sapiens_Synccom_senior_g5_co_sgq_execucaoinspecao?wsdl';
 const metodoExecucao = "Execucao";
@@ -90,7 +92,8 @@ const postExecucaoInspecaoForSapiens = async () => {
                         if (match) {
                             const numEpi = match[1]; // número extraído (ex: 15681)
 
-                            console.log(`✔ CheckList ${r.WB_NUMORP} Param Execução sucesso. NumEPI: ${numEpi}`);
+                            //console.log(`CheckList ${r.WB_NUMORP} Param Execução sucesso. NumEPI: ${numEpi}`);
+                            logger.info(`[CHECKLIST_EXECUCAO] CheckList ${r.WB_NUMORP} Param Execução sucesso. NumEPI: ${numEpi} - Sep: ${numSep}`);
 
                             // Atualiza registro processado e grava número de execução
                             await connection.execute(
@@ -102,10 +105,12 @@ const postExecucaoInspecaoForSapiens = async () => {
                             );
                         await connection.commit();    
                         } else {
-                            console.warn(`⚠️ Falha no registro Param Execução ${r.WB_NUMSEP}:`, msgRet);
+                            //console.warn(`Falha no registro Param Execução ${r.WB_NUMSEP}:`, msgRet);
+                            logger.error(`[CHECKLIST_EXECUCAO] Falha no registro Param Execução ${r.WB_NUMSEP}: ${msgRet}`);
                         }
                     } catch (err) {
-                        console.error(`Erro ao enviar registro ${r.WB_NUMSEP}:`, err);
+                        //console.error(`Erro ao enviar registro ${r.WB_NUMSEP}:`, err);
+                        logger.error(`[CHECKLIST_EXECUCAO] Erro ao enviar registro ${r.WB_NUMSEP}: ${err.stack || err.message || err}`);
                     }
             }
         }
@@ -156,7 +161,7 @@ const postExecucaoInspecaoForSapiens = async () => {
                     //console.log('Retorno SOAP:', msgRet);
 
                     if (msgRet === 'Verificação alterada com sucesso.') {
-                        console.log(`🔁 CheckList ${r.WB_NUMEPI} Param Verificação sucesso.`);
+                        //console.log(`CheckList ${r.WB_NUMEPI} Param Verificação sucesso.`);
 
                         await connection.execute(
                             `UPDATE WB_REGISTROCHECKLIST
@@ -166,11 +171,13 @@ const postExecucaoInspecaoForSapiens = async () => {
                         );
                      await connection.commit();       
                     } else {
-                        console.warn(`⚠️ Falha no registro Param Verificação ${r.WB_NUMEPI}:`, msgRet);
+                        //console.warn(`Falha no registro Param Verificação ${r.WB_NUMEPI}:`, msgRet);
+                        logger.error(`[CHECKLIST_VERIFICACAO] Falha no registro Param Verificação ${r.WB_NUMEPI}: ${msgRet}`);
                     }
 
                 } catch (error) {
-                    console.error('❌ Erro na execução SOAP:', error);
+                    //console.error('❌ Erro na execução SOAP:', error);
+                    logger.error(`[CHECKLIST_VERIFICACAO] Erro na execução SOAP para CheckList ${r.WB_NUMEPI}: ${error.stack || error.message || error}`);
                 }
             }
         }
@@ -218,7 +225,8 @@ const postExecucaoInspecaoForSapiens = async () => {
                     //console.log('Retorno SOAP:', msgRet);
 
                     if (msgRet === 'Inspeção alterada com sucesso.') {
-                        console.log(`🔁 CheckList ${r.WB_NUMEPI} Param Inspeção sucesso.`);
+                        //console.log(`CheckList ${r.WB_NUMEPI} Param Inspeção sucesso.`);
+                        logger.info(`[CHECKLIST_INSPECAO] CheckList ${r.WB_NUMEPI} Param Inspeção sucesso. Sep: ${numSep}`);
 
                         await connection.execute(
                             `UPDATE WB_REGISTROCHECKLIST
@@ -228,11 +236,13 @@ const postExecucaoInspecaoForSapiens = async () => {
                         );
                      await connection.commit();   
                     } else {
-                        console.warn(`Falha no registro Param Inspeção ${r.WB_NUMEPI}:`, msgRet);
+                        //console.warn(`Falha no registro Param Inspeção ${r.WB_NUMEPI}:`, msgRet);
+                        logger.error(`[CHECKLIST_INSPECAO] Falha no registro Param Inspeção ${r.WB_NUMEPI}: ${msgRet}`);
                     }
 
                 } catch (error) {
-                    console.error('Erro na execução SOAP:', error);
+                    //console.error('Erro na execução SOAP:', error);
+                    logger.error(`[CHECKLIST_INSPECAO] Erro na execução SOAP para CheckList: ${error.stack || error.message || error}`);
                 }
             }
         }
@@ -274,7 +284,8 @@ const postExecucaoInspecaoForSapiens = async () => {
                     //console.log('Retorno SOAP:', msgRet);
 
                     if (msgRet === 'Execução de Inspeção alterada com sucesso.') {
-                        console.log(`🔁 CheckList ${r.WB_NUMEPI} Param Execução Final sucesso.`);
+                        //console.log(`CheckList ${r.WB_NUMEPI} Param Execução Final sucesso.`);
+                        logger.info(`[CHECKLIST_EXECUCAO_FINAL] CheckList ${r.WB_NUMEPI} Param Execução Final sucesso.`);
 
                         await connection.execute(
                             `UPDATE WB_REGISTROCHECKLIST
@@ -284,24 +295,29 @@ const postExecucaoInspecaoForSapiens = async () => {
                         );
                     await connection.commit();
                     } else {
-                        console.warn(`Falha no registro Param Execução Final ${r.WB_NUMEPI}:`, msgRet);
+                        //console.warn(`Falha no registro Param Execução Final ${r.WB_NUMEPI}:`, msgRet);
+                        logger.error(`[CHECKLIST_EXECUCAO_FINAL] Falha no registro Param Execução Final ${r.WB_NUMEPI}: ${msgRet}`);
                     }
 
                 } catch (error) {
-                    console.error('Erro na execução SOAP:', error);
+                    //console.error('Erro na execução SOAP:', error);
+                    logger.error(`[CHECKLIST_EXECUCAO_FINAL] Erro na execução SOAP para CheckList: ${error.stack || error.message || error}`);
                 }
             }
         }
 
 
         await connection.commit();
-        console.log('Transação CheckList concluída com sucesso.');
+        //console.log('Transação CheckList concluída com sucesso.');
+        logger.info(`[CHECKLIST] Transação concluída com sucesso.`);
     } catch (error) {
         if (connection) {
             await connection.rollback();
-            console.error('Transação CheckList revertida devido a um erro.');
+            //console.error('Transação CheckList revertida devido a um erro.');
+            logger.error(`[CHECKLIST] Transação revertida devido a erro: ${error.stack || error.message || error}`);
         }
-        console.error('Erro ao processar CheckList:', error);
+        //console.error('Erro ao processar CheckList:', error);
+        logger.error(`[CHECKLIST] Erro ao processar CheckList: ${error.stack || error.message || error}`);
     } finally {
         if (connection) connection.release();
     }
@@ -311,5 +327,6 @@ module.exports = { postExecucaoInspecaoForSapiens };
 
 // Rodando servidor em outra porta
 app.listen(9008, () => {
-    console.log('Server running on port 9008');
+    //console.log('Server running on port 7083');
+    logger.info(`[SERVER] Server running on port 9008`);
 });

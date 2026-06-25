@@ -3,7 +3,7 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
 const moment = require('moment');
-
+const logger = require('./logger');
 
 const app = express();
 
@@ -16,6 +16,7 @@ const db = mysql.createPool({
 
 app.use(cors());
 app.use(express.json());
+
 
 
 
@@ -40,7 +41,7 @@ const postApontamentoComponentesForSapiens = async () => {
         );
 
         if (rows.length === 0) {
-            console.log('Nenhum registro Componentes a ser processado.');
+            //console.log('Nenhum registro Componentes a ser processado.');
             return;
         }
 
@@ -70,7 +71,8 @@ const postApontamentoComponentesForSapiens = async () => {
 
                 // Verificar o retorno do SOAP para confirmar envio
                 if (result?.result?.tipRet === '1') {
-                    console.log(`Componentes para ordem ${row.WB_NUMORP} enviado com sucesso.`);
+                    //console.log(`Componentes para ordem ${row.WB_NUMORP} enviado com sucesso.`);
+                    logger.info(`[POST_COMPONENTES] Componentes para ordem ${row.WB_NUMORP} enviado com sucesso.`);
                 
                     // Atualizar registro para WB_PROCESS = 'S'
                     await connection.execute(
@@ -78,40 +80,37 @@ const postApontamentoComponentesForSapiens = async () => {
                         ['S', row.WB_NUMEMP, row.WB_NUMORI, row.WB_NUMORP, row.WB_NUMETQ]
                     );
                 } else {
-                    console.warn(`Falha ao enviar Componentes para ordem ${row.WB_NUMORP}:`, result?.result?.msgRet || 'Erro desconhecido.');
+                    //console.warn(`Falha ao enviar Componentes para ordem ${row.WB_NUMORP}:`, result?.result?.msgRet || 'Erro desconhecido.');
+                    logger.error(`[POST_COMPONENTES] Falha ao enviar Componentes para ordem ${row.WB_NUMORP}: ${result?.result?.msgRet || 'Erro desconhecido.'}`);
                 }
             } catch (error) {
-                console.error(`Erro ao enviar Componentes para ordem ${row.WB_NUMORP}:`, error);
+                //console.error(`Erro ao enviar Componentes para ordem ${row.WB_NUMORP}:`, error);
+                logger.error(`[POST_COMPONENTES] Erro ao enviar Componentes para ordem ${row.WB_NUMORP}: ${error.stack || error.message || error}`);
             }
         }
 
         await connection.commit();
-        console.log('Transação Componentes concluída com sucesso.');
+        //console.log('Transação Componentes concluída com sucesso.');
+        logger.info(`[POST_COMPONENTES] Transação concluída com sucesso.`);
     } catch (error) {
         if (connection) {
             await connection.rollback();
-            console.error('Transação Componentes revertida devido a um erro.');
+            //console.error('Transação Componentes revertida devido a um erro.');
+            logger.error(`[POST_COMPONENTES] Transação revertida devido a erro: ${error.stack || error.message || error}`);
         }
-        console.error('Erro ao processar apontamentos:', error);
+        //console.error('Erro ao processar apontamentos:', error);
+        logger.error(`[POST_COMPONENTES] Erro ao processar apontamentos: ${error.stack || error.message || error}`);
     } finally {
         if (connection) connection.release();
     }
 };
 
-// Rota para executar o getDataFromSapiens
-app.post('/importar-sapiens', async (req, res) => {
-    try {
-        await postApontamentoComponentesForSapiens();
-        res.status(200).send('Dados atualizados com sucesso');
-    } catch (error) {
-        res.status(500).send('Erro ao atualizar dados');
-    }
-});
 
 module.exports = { postApontamentoComponentesForSapiens };
 
 
 // RODANDO EM OUTRA PORTA PARA NAO DAR CONFLITO COM A PORTA 3002 DO BANCO
 app.listen(9020, () => {
-    console.log('Server running on port 9020');
+    logger.info(`[SERVER] Server running on port 9020`);
+    //console.log('Server running on port 7079');
 });

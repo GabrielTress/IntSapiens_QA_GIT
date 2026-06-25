@@ -2,8 +2,8 @@ const soap = require('soap');
 const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
-
 const app = express();
+const logger = require('./logger');
 
 app.use(cors());
 app.use(express.json());
@@ -17,6 +17,8 @@ const db = mysql.createPool({
     connectionLimit: 10,
     queueLimit: 0
 });
+
+
 
 const sapiensWsdlUrl =
     'http://192.168.0.1:8080/g5-senior-services/sapiens_Synccom.senior.g5.co.int.mpr.Madesp?wsdl';
@@ -40,7 +42,7 @@ async function getEtiquetaFromSapiens() {
 
     try {
 
-        console.log('Iniciando sincronização Etiquetas...');
+        //console.log('Iniciando sincronização Etiquetas...');
 
         const client = await soap.createClientAsync(sapiensWsdlUrl);
 
@@ -96,9 +98,12 @@ async function getEtiquetaFromSapiens() {
 
             } catch (error) {
 
-                console.error(
+                /*console.error(
                     `Erro codFam ${codFam}:`,
                     error.message
+                );*/
+                logger.error(
+                    `[ETIQUETA] Erro codFam ${codFam}: ${error.stack || error.message || error}`
                 );
             }
         }
@@ -126,7 +131,8 @@ async function getEtiquetaFromSapiens() {
 
         await connection.commit();
 
-        console.log('Sincronização Etiquetas concluída.');
+        //console.log('Transação Etiquetas concluída.');
+        logger.info(`[ETIQUETA] Transação concluída.`);
 
     } catch (error) {
 
@@ -134,7 +140,8 @@ async function getEtiquetaFromSapiens() {
             await connection.rollback();
         }
 
-        console.error('Erro geral:', error);
+        //console.error('Erro Transação Etiquetas:', error);
+        logger.error(`[ETIQUETA] Erro Transação: ${error.stack || error.message || error}`);
         throw error;
 
     } finally {
@@ -231,5 +238,6 @@ module.exports = {
 };
 
 app.listen(9007, () => {
-    console.log('Server running on port 9007');
+    //console.log('Server running on port 7077');
+    logger.info('[SERVER] Server running on port 9007');
 });

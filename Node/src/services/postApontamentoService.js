@@ -2,6 +2,7 @@ const soap = require('soap');
 const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
+const logger = require('./logger');
 
 
 const app = express();
@@ -15,6 +16,7 @@ const db = mysql.createPool({
 
 app.use(cors());
 app.use(express.json());
+
 
 
 
@@ -39,7 +41,8 @@ const postApontamentoForSapiens = async () => {
         );
 
         if (rows.length === 0) {
-            console.log('Nenhum registro Apontamento a ser processado.');
+            //console.log('Nenhum registro Apontamento a ser processado.');
+            
             return;
         }
 
@@ -77,40 +80,37 @@ const postApontamentoForSapiens = async () => {
                         ['S', row.WB_NUMEMP, row.WB_NUMORI, row.WB_NUMORP, row.WB_NUMSEQ, row.WB_NUMREC]
                     );
                 } else {
-                    console.warn(`Falha ao enviar apontamento para ordem ${row.WB_NUMORP}:`, result?.result?.msgRet || 'Erro desconhecido.');
+                    //console.warn(`Falha ao enviar apontamento para ordem ${row.WB_NUMORP}:`, result?.result?.msgRet || 'Erro desconhecido.');
+                    logger.error(`[POST_APONTAMENTO] Falha ao enviar apontamento para ordem ${row.WB_NUMORP}: ${result?.result?.msgRet || 'Erro desconhecido.'}`);
                 }
             } catch (error) {
-                console.error(`Erro ao enviar apontamento para ordem ${row.WB_NUMORP}:`, error);
+                //console.error(`Erro ao enviar apontamento para ordem ${row.WB_NUMORP}:`, error);
+                logger.error(`[POST_APONTAMENTO] Erro ao enviar apontamento para ordem ${row.WB_NUMORP}: ${error.stack || error.message || error}`);
             }
         }
 
         await connection.commit();
-        console.log('Transação Apontamento concluída com sucesso.');
+        //console.log('Transação Apontamento concluída com sucesso.');
+        logger.info(`[POST_APONTAMENTO] Transação concluída com sucesso`);
     } catch (error) {
         if (connection) {
             await connection.rollback();
-            console.error('Transação Apontamento revertida devido a um erro.');
+            //console.error('Transação Apontamento revertida devido a um erro.');
+            logger.error(`[POST_APONTAMENTO] Transação revertida devido a erro: ${error.stack || error.message || error}`);
         }
-        console.error('Erro ao processar apontamentos:', error);
+        //console.error('Erro ao processar apontamentos:', error);
+        logger.error(`[POST_APONTAMENTO] Erro ao processar apontamentos: ${error.stack || error.message || error}`);
     } finally {
         if (connection) connection.release();
     }
 };
 
-// Rota para executar o getDataFromSapiens
-app.post('/importar-sapiens', async (req, res) => {
-    try {
-        await postApontamentoForSapiens();
-        res.status(200).send('Dados atualizados com sucesso');
-    } catch (error) {
-        res.status(500).send('Erro ao atualizar dados');
-    }
-});
 
 module.exports = { postApontamentoForSapiens };
 
 
 // RODANDO EM OUTRA PORTA PARA NAO DAR CONFLITO COM A PORTA 3002 DO BANCO
 app.listen(9008, () => {
-    console.log('Server running on port 9008');
+    //console.log('Server running on port 7078');
+    logger.info(`[SERVER] Server running on port 9008`);
 });

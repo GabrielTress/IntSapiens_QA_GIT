@@ -2,6 +2,9 @@ const express = require('express');
 const app = express();
 const mysql = require('mysql2/promise');
 const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
+const loggerBackend = require('../services/loggerBackend');
 
 
 
@@ -17,8 +20,6 @@ const db = mysql.createPool({
 
 app.use(cors());
 app.use(express.json());
-
-
 
 
 
@@ -57,7 +58,8 @@ app.get('/sequenciamento', async (req, res) => {
 
     res.json(mappedResults);
   } catch (err) {
-    console.error('Erro ao executar a consulta:', err);
+    //console.error('Erro ao executar a consulta:', err);
+    loggerBackend.error(`[SEQUENCIAMENTO] Erro ao executar consulta: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao obter dados');
   }
 });
@@ -95,7 +97,8 @@ app.post('/apontamento', async (req, res) => {
     res.status(200).json({ message: 'Apontamento e atualização realizados com sucesso!' });
   } catch (err) {
     await connection.rollback();
-    console.error('Erro ao realizar o apontamento e atualização:', err);
+    //console.error('Erro ao realizar o apontamento e atualização:', err);
+    loggerBackend.error(`[APONTAMENTO] Erro ao realizar apontamento e atualização: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao realizar o apontamento e atualização: ' + err.message);
   } finally {
     connection.release();
@@ -111,7 +114,8 @@ app.get('/recursos', async (req, res) => {
 
     res.json(results);
   } catch (err) {
-    console.error('Erro ao executar a consulta:', err);
+    //console.error('Erro ao executar a consulta:', err);
+    loggerBackend.error(`[RECURSOS] Erro ao executar consulta: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao obter dados');
   }
 });
@@ -136,7 +140,8 @@ app.get('/infoProdutos/:wb_numProd', async (req, res) => {
 
     res.json(results[0]);
   } catch (err) {
-    console.error('Erro ao executar a consulta:', err);
+    //console.error('Erro ao executar a consulta:', err);
+    loggerBackend.error(`[INFORMAÇÕES TÉCNICAS] Erro ao executar a consulta: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao obter dados do produto');
   }
 });
@@ -160,7 +165,8 @@ app.get('/etiquetas', async (req, res) => {
     res.json({ existe });
 
   } catch (err) {
-    console.error('Erro ao executar a consulta:', err);
+    //console.error('Erro ao executar a consulta:', err);
+    loggerBackend.error(`[ETIQUETAS GERAL] Erro ao executar a consulta: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao obter dados');
   } finally {
     connection.release();
@@ -175,7 +181,8 @@ app.get('/etiquetasFSC', async (req, res) => {
     const [results] = await connection.query('SELECT WB_NUMETQ FROM WB_ETIQUETA WHERE WB_TEMFSC = "S"');
     res.json(results);
   } catch (err) {
-    console.error('Erro ao executar a consulta:', err);
+    //console.error('Erro ao executar a consulta:', err);
+    loggerBackend.error(`[ETIQUETAS FSC] Erro ao executar a consulta: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao obter dados');
   } finally {
     connection.release(); // Libera a conexão do pool
@@ -196,7 +203,8 @@ app.get('/componentes', async (req, res) => {
     );
     res.json(results);
   } catch (err) {
-    console.error('Erro ao executar a consulta:', err);
+    //console.error('Erro ao executar a consulta:', err);
+    loggerBackend.error(`[COMPONENTES] Erro ao executar a consulta: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao obter dados');
   } finally {
     connection.release();
@@ -224,7 +232,7 @@ app.post('/componentes', async (req, res) => {
   } catch (err) {
     // Rollback em caso de erro
     await connection.rollback();
-    console.error('Erro ao realizar a inserção. Etiqueta ', wb_numEtq, ' ja lida anteriormente');
+    loggerBackend.error(`[ETIQUETA] Erro ao realizar a inserção. Etiqueta ${wb_numEtq} ja lida anteriormente`);
     res.status(500).send('Erro ao realizar a inserção.');
   } finally {
     connection.release();
@@ -233,11 +241,39 @@ app.post('/componentes', async (req, res) => {
 
 //////////////////////////////////////
 
-/////////////DESENHO/////////////////////////
+/////////////DESENHO MADESP/////////////////////////
 app.get('/desenhoProduto/:numProd', (req, res) => {
   const path = require('path');
   const pdfDirectory = path.resolve('//192.168.0.250/Meus Documentos/Exportação/MOLDURAS MADESP/DESENHOS PRODUÇÃO');
   const numProd = req.params.numProd.slice(0, 14);
+  const fs = require('fs');
+  // Listar arquivos no diretório
+  fs.readdir(pdfDirectory, (err, files) => {
+    if (err) {
+      return res.status(500).send('Erro ao acessar diretório');
+    }
+
+    // Encontrar o arquivo que começa com numProd
+    const fileName = files.find(file => file.startsWith(numProd));
+    
+    if (fileName) {
+      const filePath = path.join(pdfDirectory, fileName);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'inline; filename="' + fileName + '"');
+      res.sendFile(filePath);
+    } else {
+      res.status(404).send('Arquivo não encontrado');
+    }
+  });
+
+});
+
+/////////////DESENHO BIOENERGY/////////////////////////
+app.get('/desenhoProdutoBioEnergy/:numProdBioEnergy', (req, res) => {
+  const path = require('path');
+  const pdfDirectory = path.resolve('//192.168.0.250/Meus Documentos/Exportação/BIOENERGY/DESENHOS');
+  const numProd = req.params.numProdBioEnergy.slice(0, 6);
+  console.log("produto solicitado: ", numProd);
   const fs = require('fs');
   // Listar arquivos no diretório
   fs.readdir(pdfDirectory, (err, files) => {
@@ -295,6 +331,40 @@ app.get('/pedido/:numPed', (req, res) => {
 
 });
 
+/////////////PEDIDO BIOENERGY/////////////////////////
+app.get('/pedidoBioEnergy/:numPedBioEnergy', (req, res) => {
+  const path = require('path');
+  const pdfDirectory = path.resolve('//192.168.0.250/Meus Documentos/Exportação/BIOENERGY/PEDIDO');
+
+
+  const numPed = req.params.numPedBioEnergy;
+  const fs = require('fs');
+  // Listar arquivos no diretório
+  fs.readdir(pdfDirectory, (err, files) => {
+    if (err) {
+      return res.status(500).send('Erro ao acessar diretório');
+    }
+
+    function extrairNumerosIniciais(nomeArquivo) {
+      const match = nomeArquivo.match(/^\d+/);
+      return match ? match[0] : null;
+  }
+
+    // Encontrar o arquivo que começa com numPed
+    const fileName = files.find(file => file.startsWith(extrairNumerosIniciais(numPed)));
+    
+    if (fileName) {
+      const filePath = path.join(pdfDirectory, fileName);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'inline; filename="' + fileName + '"');
+      res.sendFile(filePath);
+    } else {
+      res.status(404).send('Arquivo não encontrado');
+    }
+  });
+
+});
+
 //////////////////////////////////////////////////////////////
 
 app.post('/Repasse', async (req, res) => {
@@ -312,7 +382,8 @@ app.post('/Repasse', async (req, res) => {
 
     res.status(200).json({ message: 'Dados adicionados com sucesso', quantidadeTotal });
   } catch (err) {
-    console.error('Erro ao adicionar dados:', err);
+    //console.error('Erro ao adicionar dados:', err);
+    loggerBackend.error(`[REPASSE] Erro ao adicionar dados: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao adicionar dados');
   } finally {
     connection.release(); // Libera a conexão do pool
@@ -332,7 +403,8 @@ app.post('/frame', async (req, res) => {
     await connection.query(sqlInsert, [recurso, espessura, largura, comprimento, qtdProd, metrosCubicos, dataApont]);
     res.status(200).json({ message: 'Dados adicionados com sucesso' });
   } catch (err) {
-    console.error(err);
+    //console.error(err);
+    loggerBackend.error(`[FRAME] Erro ao inserir dados: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao adicionar dados');
   } finally {
     connection.release(); // Libera a conexão de volta para o pool
@@ -357,7 +429,7 @@ app.post('/printFinger', async (req, res) => {
     wb_nomeRec
   } = req.body;
 
- const convertRecurso =
+  const convertRecurso =
   wb_nomeRec === "04" ? "Finger 01" :
   wb_nomeRec === "05" ? "Finger 02" :
   wb_nomeRec === "07" ? "Coladeira" :
@@ -431,7 +503,8 @@ app.post('/printFinger', async (req, res) => {
       res.send(zpl);
 
     } catch (error) {
-      console.error("❌ Erro ao salvar etiqueta: ", error.message);
+      //console.error("❌ Erro ao salvar etiqueta: ", error.message);
+      loggerBackend.error(`[IMPRESSÃO ETIQUETA] Erro ao salvar etiqueta: ${error.stack || error.message || error}`);
       res.status(500).json({ error: "Erro ao salvar no banco" });
     }
 });
@@ -507,7 +580,8 @@ app.post('/printEtiquetasGeral', async (req, res) => {
     res.send(zpl);
 
   } catch (error) {
-    console.error("❌ Erro ao consultar etiqueta:", error.message);
+    //console.error("❌ Erro ao consultar etiqueta:", error.message);
+    loggerBackend.error(`[REIMPRESSÃO ETIQUETA] Erro ao executar a consulta: ${error.stack || error.message || error}`);
     res.status(500).json({ error: "Erro ao buscar etiqueta no banco" });
   }
 });
@@ -522,7 +596,8 @@ app.get('/obterEtiquetaFinger/:wb_numOrp', async (req, res) => {
     const [results] = await connection.query('SELECT * FROM WB_OBTERETIQUETA WHERE WB_NUMORP = ? ORDER BY WB_SEQETQ', [wb_numOrp]);
     res.json(results);
   } catch (err) {
-    console.error('Erro ao executar a consulta:', err);
+    //console.error('Erro ao executar a consulta:', err);
+    loggerBackend.error(`[OBTER ETIQUETA] Erro ao executar a consulta: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao obter dados');
   } finally {
     connection.release();
@@ -594,10 +669,12 @@ app.put('/updateObterEtiquetaFinger', async (req, res) => {
         continue;
       }
 
-      console.error(
+      /*console.error(
         'Erro ao realizar atualização:',
         err
-      );
+      );*/
+
+      loggerBackend.error(`[ATUALIZAÇÃO ETIQUETAS] Erro ao realizar atualização: ${err.stack || err.message || err}`);
 
       return res.status(500).send(
         'Erro ao realizar atualização.'
@@ -631,7 +708,8 @@ app.post('/apontamentoEtiqueta', async (req, res) => {
   } catch (err) {
     // Rollback em caso de erro
     await connection.rollback();
-    console.error('Erro ao realizar a inserção.');
+    //console.error('Erro ao realizar a inserção.');
+    loggerBackend.error(`[APONTAMENTO ETIQUETA] Erro ao realizar inserção: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao realizar a inserção.');
   } finally {
     connection.release();
@@ -655,7 +733,8 @@ app.get('/apontamentoEtiqueta', async (req, res) => {
 
     res.json(results); // Vai retornar um array (vazio ou com dados)
   } catch (err) {
-    console.error('Erro ao executar a consulta:', err);
+    //console.error('Erro ao executar a consulta:', err);
+    loggerBackend.error(`[APONTAMENTO ETIQUETA] Erro ao executar a consulta: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao obter dados');
   } finally {
     connection.release();
@@ -680,7 +759,8 @@ app.post('/inventario', async (req, res) => {
   } catch (err) {
     // Rollback em caso de erro
     await connection.rollback();
-    console.error('Erro ao realizar a inserção. Etiqueta ', wb_numEtq, ' ja lida anteriormente');
+    //console.error('Erro ao realizar a inserção. Etiqueta ', wb_numEtq, ' ja lida anteriormente');
+    loggerBackend.error(`[INVENTÁRIO] Erro ao realizar a inserção. Etiqueta ${wb_numEtq} ja lida anteriormente: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao realizar a inserção.');
   } finally {
     connection.release();
@@ -694,7 +774,8 @@ app.get('/inventario', async (req, res) => {
 
     res.json(results);
   } catch (err) {
-    console.error('Erro ao executar a consulta:', err);
+    //console.error('Erro ao executar a consulta:', err);
+    loggerBackend.error(`[INVENTÁRIO] Erro ao executar a consulta: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao obter dados');
   }
 });
@@ -721,7 +802,8 @@ app.get('/checklistqualidade/:wb_numProd/:wb_numRec', async (req, res) => {
 
     res.json(results);
   } catch (err) {
-    console.error('Erro ao executar a consulta:', err);
+    //console.error('Erro ao executar a consulta:', err);
+    loggerBackend.error(`[CHECKLIST QUALIDADE] Erro ao executar a consulta: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao obter dados do produto');
   }finally {
     connection.release();
@@ -767,7 +849,8 @@ app.post('/saveChecklistQualidadeFinger', async (req, res) => {
     res.status(200).send("Checklist salvo com sucesso.");
   } catch (error) {
     await connection.rollback();
-    console.error("Erro ao salvar checklist:", error);
+    //console.error("Erro ao salvar checklist:", error);
+    loggerBackend.error(`[CHECKLIST QUALIDADE] Erro ao salvar checklist: ${error.stack || error.message || error}`);
     res.status(500).send("Erro ao salvar checklist.");
   } finally {
     connection.release();
@@ -787,7 +870,8 @@ app.get('/consultaPerfiladeira11', async (req, res) => {
     );
     res.json(results);
   } catch (err) {
-    console.error('Erro ao executar a consulta:', err);
+    //console.error('Erro ao executar a consulta:', err);
+    loggerBackend.error(`[PERFILADEIRA 11] Erro ao executar a consulta: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao obter dados');
   } finally {
     connection.release();
@@ -819,15 +903,14 @@ app.get('/checklistqualidade', async (req, res) => {
 
     res.json(results);
   } catch (err) {
-    console.error('Erro ao executar a consulta:', err);
+    //console.error('Erro ao executar a consulta:', err);
+    loggerBackend.error(`[CHECKLIST QUALIDADE] Erro ao executar a consulta: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao obter dados do produto');
   }finally {
     connection.release();
   }
 });
-
 ////////////////////////////////
-
 app.get('/verificaComponentesAntesDaImpressao', async (req, res) => {
   const { wb_numOrp, wb_numRec, wb_numOri } = req.query;
 
@@ -844,7 +927,8 @@ app.get('/verificaComponentesAntesDaImpressao', async (req, res) => {
 
     res.json(results); // Vai retornar um array (vazio ou com dados)
   } catch (err) {
-    console.error('Erro ao executar a consulta:', err);
+    //console.error('Erro ao executar a consulta:', err);
+    loggerBackend.error(`[COMPONENTES ANTES DA IMPRESSÃO] Erro ao executar a consulta: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao obter dados');
   } finally {
     connection.release();
@@ -867,17 +951,15 @@ app.get('/verificaQuantidadesApontadas', async (req, res) => {
 
     res.json(results); // Vai retornar um array (vazio ou com dados)
   } catch (err) {
-    console.error('Erro ao executar a consulta:', err);
+    //console.error('Erro ao executar a consulta:', err);
+    loggerBackend.error(`[QUANTIDADES APONTADAS] Erro ao executar a consulta: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao obter dados');
   } finally {
     connection.release();
   }
 });
 
-
-/////////////////////////////////////
-
-//////////////////////////////////
+////////////////////////////////
 app.get('/saldosOp', async (req, res) => {
   const { wb_numEmp, wb_numRec, wb_numOrp, wb_numOri, wb_numSeq } = req.query;
 
@@ -894,12 +976,14 @@ app.get('/saldosOp', async (req, res) => {
 
     res.json(results); // Vai retornar um array (vazio ou com dados)
   } catch (err) {
-    console.error('Erro ao executar a consulta:', err);
+    //console.error('Erro ao executar a consulta:', err);
+    loggerBackend.error(`[SALDOS OP] Erro ao executar a consulta: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao obter dados');
   } finally {
     connection.release();
   }
 });
+
 
 /////////////OBTENDO MOTIVOS PNC//////////////////////
 
@@ -910,13 +994,13 @@ app.get('/obterMotivosPnc/:wb_numRec', async (req, res) => {
     const [results] = await connection.query('SELECT * FROM WB_PNC WHERE WB_NUMREC = ?', [wb_numRec]);
     res.json(results);
   } catch (err) {
-    console.error('Erro ao executar a consulta:', err);
+    //console.error('Erro ao executar a consulta:', err);
+    loggerBackend.error(`[MOTIVOS PNC] Erro ao executar a consulta: ${err.stack || err.message || err}`);
     res.status(500).send('Erro ao obter dados');
   } finally {
     connection.release();
   }
 });
-
 
 //////////FERRAMENTA /////////////////////////////
 
@@ -1026,7 +1110,9 @@ app.post('/ferramenta', async (req, res) => {
             await connection.rollback();
         }
 
-        console.error(error);
+        //console.error(error);
+        loggerBackend.error(`[FERRAMENTA] Erro ao inserir dados: ${error.stack || error.message || error}`);
+
 
         return res.status(500).json({
             message: 'Erro interno'
@@ -1043,8 +1129,11 @@ app.post('/ferramenta', async (req, res) => {
 
 ///////////////////////////////////////
 
+////////////////////////////////
+
 app.listen(port, '0.0.0.0', () => {
-  console.log(`Servidor rodando em http://192.168.0.250:${port}`);
+  //console.log(`Servidor rodando em http://192.168.0.250:${port}`);
+  loggerBackend.info(`[SERVER] Servidor rodando em http://192.168.0.250:${port}`);
 });
 
 

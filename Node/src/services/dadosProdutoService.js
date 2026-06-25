@@ -3,6 +3,7 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
 const moment = require('moment');
+const logger = require('./logger'); // Importa o logger configurado
 
 const app = express();
 
@@ -18,87 +19,179 @@ app.use(express.json());
 
 
 
+
 const sapiensWsdlUrl = 'http://192.168.0.1:8080/g5-senior-services/sapiens_Synccom.senior.g5.co.int.mpr.Madesp?wsdl';
-
-
 const metodoDadosProduto = 'DadosProduto';
 
 
-const aCodFam = [300, 301, 302, 303, 310, 311, 312, 313, 320, 330, 340, 350, 351, 352, 353, 359, 360, 361, 362, 363, 400, 410, 420, 430, 440,
-                450, 460, 470, 600001, 600002, 600003, 600004, 600005, 600006, 600007, 600008, 600009, 600010, 600011, 600012, 600013, 600101,
-                600102, 600103, 600104, 600105, 600106, 600107, 600108, 600109, 600110, 600111, 600112, 600113, 600114, 600201, 600202, 600203,
-                600204, 600205, 600206, 600207, 600208, 600209, 600210, 600211, 600212, 600213, 650001, 650002, 650003, 650004, 650005, 650006,
-                650007, 650008, 650009, 650010, 650011, 650012, 650013, 650101, 650102, 650103, 650104, 650105, 650106, 650107, 650108, 650109, 
-                650110, 650111, 650112, 650113, 650201, 650202, 650203, 650204, 650205, 650206, 650207, 650208, 650209, 650210, 650211, 650212,
-                650213];            
+const empresas = [1, 3];
+const familiasPorEmpresa = {
 
-                const getDadosProdutoFromSapiens = async () => {
-                    let connection;
-                
-                    try {
-                        //console.log('Creating SOAP client...');
-                        const client = await soap.createClientAsync(sapiensWsdlUrl);
-                        //console.log('SOAP client created successfully');
-                
-                        connection = await db.getConnection();
-                        await connection.beginTransaction();
+    1: [
+        300, 301, 302, 303, 310, 311, 312, 313, 320, 330, 340, 350, 351, 352, 353, 359, 360, 361, 362, 363,
+        400, 410, 420, 430, 440, 450, 460, 470, 600001, 600002, 600003, 600004, 600005, 600006, 600007, 600008, 600009, 600010,
+        600011, 600012, 600013, 600101, 600102, 600103, 600104, 600105, 600106, 600107, 600108, 600109, 600110, 600111, 600112, 600113, 600114,
+        600201, 600202, 600203, 600204, 600205, 600206, 600207, 600208, 600209, 600210, 600211, 600212, 600213, 650001, 650002, 650003, 650004, 650005,
+        650006, 650007, 650008, 650009, 650010, 650011, 650012, 650013, 650101, 650102, 650103, 650104, 650105, 650106, 650107, 650108, 650109, 650110,
+        650111, 650112, 650113, 650201, 650202, 650203, 650204, 650205, 650206, 650207, 650208, 650209, 650210, 650211, 650212, 650213
+    ],
 
-                        // Deletar registros com base na condição especificada
-                        await connection.execute(
-                        'DELETE FROM WB_DADOSPRODUTO'
-                        );
-                
-                        for (const codFam of aCodFam) {
+    3: [
+        80
+    ]
+
+};
+
+        const getDadosProdutoFromSapiens = async () => {
+
+            let connection;
+
+            try {
+
+                const client =
+                    await soap.createClientAsync(
+                        sapiensWsdlUrl
+                    );
+
+                connection =
+                    await db.getConnection();
+
+                await connection.beginTransaction();
+
+                const todosDados = [];
+
+                for (const codEmp of empresas) {
+
+                    const familias =
+                        familiasPorEmpresa[codEmp] || [];
+
+                    /*logger.info(
+                        `[DADOS_PRODUTO] Processando empresa ${codEmp}`
+                    );*/
+
+                    for (const codFam of familias) {
+
+                        try {
+
                             const params = {
+
                                 user: 'apontamentoweb',
                                 password: 'apontamentoweb',
                                 encryption: 0,
                                 parameters: {
-                                    codEmp: 1,
-                                    codFam: codFam
+                                    codEmp,
+                                    codFam
                                 }
                             };
-                            
-                            //console.log(`Calling method ${metodoDadosProduto} for codFam ${codFam}...`);
-                
-                            try {
-                                const [result] = await client[`${metodoDadosProduto}Async`](params);
-                                
-                                // Verifique se `result` e `result.result` não são nulos e se `lstPro` existe
-                                const dadosRecebidos = result?.result?.lstPro;
-                                
-                                if (dadosRecebidos) {
-                                    //console.log("Dados Recebidos para codFam", codFam, ":", dadosRecebidos);
-                            
-                                    // Processa os dados se `dadosRecebidos` for um array ou objeto
-                                    if (Array.isArray(dadosRecebidos)) {
-                                        for (const item of dadosRecebidos) {
-                                            await verificarEAtualizarRegistro(item, connection);
-                                        }
-                                    } else {
-                                        await verificarEAtualizarRegistro(dadosRecebidos, connection);
-                                    }
-                                } else {
-                                    //console.warn(`Nenhum dado DadosProduto retornado para codFam ${codFam}`);
-                                }
-                            } catch (error) {
-                                console.error(`Erro ao buscar dados para codFam ${codFam}:`, error);
+
+                            const [result] =
+                                await client[
+                                    `${metodoDadosProduto}Async`
+                                ](params);
+
+                            const dadosRecebidos =
+                                result?.result?.lstPro;
+
+                            if (!dadosRecebidos) {
+
+                                /*logger.warn(
+                                    `[DADOS_PRODUTO] Empresa ${codEmp} família ${codFam} retornou vazia`
+                                );*/
+
+                                continue;
+
                             }
+
+                            if (
+                                Array.isArray(
+                                    dadosRecebidos
+                                )
+                            ) {
+
+                                todosDados.push(
+                                    ...dadosRecebidos
+                                );
+
+                            } else {
+
+                                todosDados.push(
+                                    dadosRecebidos
+                                );
+
+                            }
+
+                        } catch (error) {
+
+                            logger.error(
+                                `[DADOS_PRODUTO] Erro empresa ${codEmp} família ${codFam}: ${error.stack || error.message || error}`
+                            );
+
                         }
-                
-                        await connection.commit();
-                        console.log('Transação Dados Produto concluída com sucesso.');
-                    } catch (error) {
-                        if (connection) {
-                            await connection.rollback();
-                            console.error('Transação Dados Produto revertida devido a um erro.');
-                        }
-                        console.error('Erro ao buscar dados do SAPIENS:', error);
-                        throw new Error(error);
-                    } finally {
-                        if (connection) connection.release();
+
                     }
-                };
+
+                }
+
+                if (todosDados.length === 0) {
+
+                    logger.error(
+                        '[DADOS_PRODUTO] Nenhum dado retornado do SOAP. DELETE cancelado.'
+                    );
+
+                    await connection.rollback();
+
+                    return;
+
+                }
+
+                await connection.execute(
+                    'DELETE FROM WB_DADOSPRODUTO'
+                );
+
+                /*logger.info(
+                    '[DADOS_PRODUTO] Tabela WB_DADOSPRODUTO limpa'
+                );*/
+
+                for (const item of todosDados) {
+
+                    await verificarEAtualizarRegistro(
+                        item,
+                        connection
+                    );
+
+                }
+
+                await connection.commit();
+
+                logger.info(
+                    '[DADOS_PRODUTO] Transação concluída com sucesso.'
+                );
+
+            } catch (error) {
+
+                if (connection) {
+
+                    await connection.rollback();
+
+                }
+
+                logger.error(
+                    `[DADOS_PRODUTO] ${error.stack || error.message || error}`
+                );
+
+                throw error;
+
+            } finally {
+
+                if (connection) {
+
+                    connection.release();
+
+                }
+
+            }
+
+        };
                 
                 // Função para verificar e atualizar o registro no banco de dados
                 const safeValue = (value, parser = (v) => v) => (value === undefined ? null : parser(value));
@@ -136,10 +229,11 @@ const aCodFam = [300, 301, 302, 303, 310, 311, 312, 313, 320, 330, 340, 350, 351
                             );
                             //console.log(`Registro ${codPro} inserido.`);
                         } catch (error) {
-                            console.error(`Erro ao inserir registro ${codPro}:`, error);
+                            //console.error(`Erro ao inserir registro ${codPro}:`, error);
+                            logger.error(`[DADOS_PRODUTO] Erro ao inserir registro ${codPro}: ${error.stack || error.message || error}`);
                         }
                     } else {
-                        console.log(`Registro ${codPro} já existe e não será inserido novamente.`);
+                        //console.log(`Registro ${codPro} já existe e não será inserido novamente.`);
                     }
                 };
                 
@@ -152,20 +246,11 @@ const aCodFam = [300, 301, 302, 303, 310, 311, 312, 313, 320, 330, 340, 350, 351
                     return rows.length > 0;
                 };
 
-// Rota para executar o getDataFromSapiens
-app.post('/importar-sapiens', async (req, res) => {
-    try {
-        await getDadosProdutoFromSapiens();
-        res.status(200).send('Dados atualizados com sucesso');
-    } catch (error) {
-        res.status(500).send('Erro ao atualizar dados');
-    }
-});
-
 module.exports = { getDadosProdutoFromSapiens };
 
 
 // RODANDO EM OUTRA PORTA PARA NAO DAR CONFLITO COM A PORTA 3002 DO BANCO
 app.listen(9006, () => {
-    console.log('Server running on port 9006');
+    //console.log('Server running on port 7076');
+    logger.info('[DADOS_PRODUTO] Server running on port 9006');
 });

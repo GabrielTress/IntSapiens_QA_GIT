@@ -4,11 +4,14 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
 const moment = require('moment');
+const logger = require('./logger');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+
 
 const db = mysql.createPool({
     host: 'localhost',
@@ -92,81 +95,156 @@ function formatarData(data) {
     return dt.format('YYYY-MM-DD');
 }
 
+const empresas = [1, 3];
+
 async function getSequenciamentoFromSapiens() {
 
     let connection;
 
     try {
 
-        /*console.log('===================================');
-        console.log('INICIANDO SINCRONIZAÇÃO');
-        console.log('===================================');*/
+        /*logger.info(
+            `[SEQUENCIAMENTO] Iniciando sincronização`
+        );*/
 
         const client =
             await soap.createClientAsync(sapiensWsdlUrl);
 
-        const params = {
-            user: 'apontamentoweb',
-            password: 'apontamentoweb',
-            encryption: 0,
-            parameters: {
-                codEmp: 1
+
+        // ======================================================
+        // ACUMULADOR TODOS DADOS ERP
+        // ======================================================
+
+        const todosDados = [];
+
+
+        // ======================================================
+        // LOOP EMPRESAS
+        // ======================================================
+
+        for (const codEmp of empresas) {
+
+            try {
+
+                /*logger.info(
+                    `[SEQUENCIAMENTO] Buscando empresa ${codEmp}`
+                );*/
+
+                const params = {
+
+                    user: 'apontamentoweb',
+
+                    password: 'apontamentoweb',
+
+                    encryption: 0,
+
+                    parameters: {
+                        codEmp: codEmp
+                    }
+
+                };
+
+                const [result] =
+                    await client[`${metodoSequenciamento}Async`](params);
+
+
+                /*
+                ==========================================
+                DADOS RECEBIDOS
+                ==========================================
+                */
+
+                const dadosRecebidos =
+                    result?.result?.seqOpr ||
+                    result?.seqOpr ||
+                    [];
+
+
+                /*
+                ==========================================
+                SOAP VAZIO EMPRESA
+                ==========================================
+                */
+
+                if (
+                    !dadosRecebidos ||
+                    (
+                        Array.isArray(dadosRecebidos) &&
+                        dadosRecebidos.length === 0
+                    )
+                ) {
+
+                   /* logger.warn(
+                        `[SEQUENCIAMENTO] Empresa ${codEmp} retornou vazio`
+                    );*/
+
+                    continue;
+                }
+
+
+                /*
+                ==========================================
+                ACUMULA DADOS
+                ==========================================
+                */
+
+                if (Array.isArray(dadosRecebidos)) {
+
+                    todosDados.push(...dadosRecebidos);
+
+                } else {
+
+                    todosDados.push(dadosRecebidos);
+
+                }
+
+                /*logger.info(
+                    `[SEQUENCIAMENTO] Empresa ${codEmp} carregada com sucesso`
+                );*/
+
+            } catch (error) {
+
+                logger.error(
+                    `[SEQUENCIAMENTO] Erro empresa ${codEmp}: ${error.stack || error.message || error}`
+                );
+
             }
-        };
 
-        const [result] =
-            await client[`${metodoSequenciamento}Async`](params);
+        }
 
-        /*
-        ==========================================
-        LOG SOAP
-        ==========================================
-        */
-
-        /*console.log(
-            JSON.stringify(result, null, 2)
-        );*/
 
         /*
         ==========================================
-        DADOS RECEBIDOS
+        TRAVA SEGURANÇA TOTAL
         ==========================================
         */
 
-        const dadosRecebidos =
-            result?.result?.seqOpr ||
-            result?.seqOpr ||
-            [];
+        if (todosDados.length === 0) {
 
-        /*
-        ==========================================
-        TRAVA SEGURANÇA
-        ==========================================
-        */
+            logger.error(
+                `[SEQUENCIAMENTO] Nenhum dado retornado do SOAP`
+            );
 
-        if (
-            !dadosRecebidos ||
-            (
-                Array.isArray(dadosRecebidos) &&
-                dadosRecebidos.length === 0
-            )
-        ) {
-
-            console.log('===================================');
-            console.log('SEQUENCIAMENTO VEIO VAZIO');
-            console.log('PROCESSO CANCELADO');
-            console.log('NENHUM REGISTRO ALTERADO');
-            console.log('===================================');
+            logger.error(
+                `[SEQUENCIAMENTO] Processo cancelado`
+            );
 
             return {
                 success: false,
                 message: 'SOAP vazio'
             };
+
         }
+
+
+        // ======================================================
+        // MYSQL
+        // ======================================================
 
         connection = await db.getConnection();
 
         await connection.beginTransaction();
+
 
         /*
         ==========================================
@@ -175,6 +253,7 @@ async function getSequenciamentoFromSapiens() {
         */
 
         const chavesRecebidas = [];
+
 
         /*
         ==========================================
@@ -219,7 +298,9 @@ async function getSequenciamentoFromSapiens() {
                 seqOrder: toInt(item.seqPrg),
 
                 temFsc: item.exiFSC
+
             };
+
 
             /*
             ==========================================
@@ -228,14 +309,15 @@ async function getSequenciamentoFromSapiens() {
             */
 
             const chave = [
+
                 registro.numEmp,
                 registro.numOrp,
                 registro.numOri,
                 registro.numRec,
                 registro.numSeq
+
             ].join('|');
 
-            //console.log('PROCESSANDO:', chave);
 
             /*
             ==========================================
@@ -245,6 +327,7 @@ async function getSequenciamentoFromSapiens() {
 
             chavesRecebidas.push(chave);
 
+
             /*
             ==========================================
             PROCURA REGISTRO
@@ -252,22 +335,29 @@ async function getSequenciamentoFromSapiens() {
             */
 
             const [rows] = await connection.execute(`
+
                 SELECT WB_STSGT
                 FROM WB_SEQLIST
                 WHERE
+
                     WB_NUMEMP = ?
                     AND WB_NUMORP = ?
                     AND WB_NUMORI = ?
                     AND WB_NUMREC = ?
                     AND WB_NUMSEQ = ?
+
                 LIMIT 1
+
             `, [
+
                 registro.numEmp,
                 registro.numOrp,
                 registro.numOri,
                 registro.numRec,
                 registro.numSeq
+
             ]);
+
 
             /*
             ==========================================
@@ -280,12 +370,6 @@ async function getSequenciamentoFromSapiens() {
                 const statusAtual =
                     rows[0].WB_STSGT;
 
-                /*console.log(
-                    'REGISTRO EXISTE:',
-                    chave,
-                    'STATUS:',
-                    statusAtual
-                );*/
 
                 /*
                 ======================================
@@ -295,13 +379,9 @@ async function getSequenciamentoFromSapiens() {
 
                 if (statusAtual === 'F') {
 
-                    /*console.log(
-                        'IGNORANDO F:',
-                        chave
-                    );*/
-
                     return;
                 }
+
 
                 /*
                 ======================================
@@ -311,23 +391,23 @@ async function getSequenciamentoFromSapiens() {
 
                 if (statusAtual === 'A') {
 
-                    /*console.log(
-                        'ATUALIZANDO A:',
-                        chave
-                    );*/
-
                     await connection.execute(`
+
                         UPDATE WB_SEQLIST
                         SET
+
                             WB_DATINI = ?,
                             WB_SEQORDER = ?
+
                         WHERE
+
                             WB_NUMEMP = ?
                             AND WB_NUMORP = ?
                             AND WB_NUMORI = ?
                             AND WB_NUMREC = ?
                             AND WB_NUMSEQ = ?
                             AND WB_STSGT = 'A'
+
                     `, [
 
                         registro.datIni,
@@ -338,10 +418,12 @@ async function getSequenciamentoFromSapiens() {
                         registro.numOri,
                         registro.numRec,
                         registro.numSeq
+
                     ]);
 
                     return;
                 }
+
 
                 /*
                 ======================================
@@ -349,14 +431,11 @@ async function getSequenciamentoFromSapiens() {
                 ======================================
                 */
 
-                /*console.log(
-                    'ATUALIZANDO L:',
-                    chave
-                );*/
-
                 await connection.execute(`
+
                     UPDATE WB_SEQLIST
                     SET
+
                         WB_NUMPED   = ?,
                         WB_ITEMPED  = ?,
                         WB_NUMPROD  = ?,
@@ -369,13 +448,16 @@ async function getSequenciamentoFromSapiens() {
                         WB_STSSAP   = ?,
                         WB_SEQORDER = ?,
                         WB_TEMFSC   = ?
+
                     WHERE
+
                         WB_NUMEMP = ?
                         AND WB_NUMORP = ?
                         AND WB_NUMORI = ?
                         AND WB_NUMREC = ?
                         AND WB_NUMSEQ = ?
                         AND WB_STSGT = 'L'
+
                 `, [
 
                     registro.numPed,
@@ -396,10 +478,12 @@ async function getSequenciamentoFromSapiens() {
                     registro.numOri,
                     registro.numRec,
                     registro.numSeq
+
                 ]);
 
                 return;
             }
+
 
             /*
             ==========================================
@@ -407,83 +491,73 @@ async function getSequenciamentoFromSapiens() {
             ==========================================
             */
 
-            /*console.log(
-                'NOVO REGISTRO:',
-                chave
-            );*/
+            await connection.execute(`
 
-            const [insertResult] =
-                await connection.execute(`
-                    INSERT INTO WB_SEQLIST (
+                INSERT INTO WB_SEQLIST (
 
-                        WB_NUMEMP,
-                        WB_NUMREC,
-                        WB_NUMPED,
-                        WB_ITEMPED,
-                        WB_NUMORI,
-                        WB_NUMSEQ,
-                        WB_NUMORP,
-                        WB_NUMPROD,
-                        WB_DESPRO,
-                        WB_DATINI,
-                        WB_QTDPREV,
-                        WB_QTDPROD,
-                        WB_QTDSALDO,
-                        WB_PCHORA,
-                        WB_STSSAP,
-                        WB_SEQORDER,
-                        WB_TEMFSC,
-                        WB_STSGT,
-                        WB_FERRAMENTA
+                    WB_NUMEMP,
+                    WB_NUMREC,
+                    WB_NUMPED,
+                    WB_ITEMPED,
+                    WB_NUMORI,
+                    WB_NUMSEQ,
+                    WB_NUMORP,
+                    WB_NUMPROD,
+                    WB_DESPRO,
+                    WB_DATINI,
+                    WB_QTDPREV,
+                    WB_QTDPROD,
+                    WB_QTDSALDO,
+                    WB_PCHORA,
+                    WB_STSSAP,
+                    WB_SEQORDER,
+                    WB_TEMFSC,
+                    WB_STSGT,
+                    WB_FERRAMENTA
 
-                    )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                `, [
+                )
 
-                    registro.numEmp,
-                    registro.numRec,
-                    registro.numPed,
-                    registro.itemPed,
-                    registro.numOri,
-                    registro.numSeq,
-                    registro.numOrp,
-                    registro.numProd,
-                    registro.desProd,
-                    registro.datIni,
-                    registro.qtdPrev,
-                    registro.qtdProd,
-                    registro.qtdSaldo,
-                    registro.pcHora,
-                    registro.stsSap,
-                    registro.seqOrder,
-                    registro.temFsc,
-                    'L',
-                    'N'
-                ]);
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 
-            /*console.log(
-                'INSERT OK:',
-                insertResult.insertId
-            );*/
+            `, [
+
+                registro.numEmp,
+                registro.numRec,
+                registro.numPed,
+                registro.itemPed,
+                registro.numOri,
+                registro.numSeq,
+                registro.numOrp,
+                registro.numProd,
+                registro.desProd,
+                registro.datIni,
+                registro.qtdPrev,
+                registro.qtdProd,
+                registro.qtdSaldo,
+                registro.pcHora,
+                registro.stsSap,
+                registro.seqOrder,
+                registro.temFsc,
+                'L',
+                'N'
+
+            ]);
+
         };
+
 
         /*
         ==========================================
-        PROCESSA ERP
+        PROCESSA TODOS DADOS ERP
         ==========================================
         */
 
-        if (Array.isArray(dadosRecebidos)) {
+        for (const item of todosDados) {
 
-            for (const item of dadosRecebidos) {
+            await processarRegistro(item);
 
-                await processarRegistro(item);
-            }
-
-        } else {
-
-            await processarRegistro(dadosRecebidos);
         }
+
 
         /*
         ==========================================
@@ -491,57 +565,61 @@ async function getSequenciamentoFromSapiens() {
         ==========================================
         */
 
-        /*console.log(
-            'VERIFICANDO REGISTROS AUSENTES...'
-        );*/
-
         const [registrosL] =
             await connection.execute(`
+
                 SELECT
+
                     WB_NUMEMP,
                     WB_NUMORP,
                     WB_NUMORI,
                     WB_NUMREC,
                     WB_NUMSEQ
+
                 FROM WB_SEQLIST
+
                 WHERE WB_STSGT = 'L'
+
             `);
+
 
         for (const row of registrosL) {
 
             const chaveBanco = [
+
                 toStr(row.WB_NUMEMP),
                 toStr(row.WB_NUMORP),
                 toStr(row.WB_NUMORI),
                 toStr(row.WB_NUMREC),
                 toStr(row.WB_NUMSEQ)
+
             ].join('|');
+
 
             /*
             ==========================================
-            NÃO VEIO DO ERP
+            NÃO VEIO ERP
             ==========================================
             */
 
-            if (
-                !chavesRecebidas.includes(chaveBanco)
-            ) {
-
-                /*console.log(
-                    'FINALIZANDO:',
-                    chaveBanco
-                );*/
+            if (!chavesRecebidas.includes(chaveBanco)) {
+                console.log(`Registro ausente do ERP, finalizando: ${chaveBanco}`);
+                console.log(`Chaves recebidas: ${chavesRecebidas.join(', ')}`);
 
                 await connection.execute(`
+
                     UPDATE WB_SEQLIST
                     SET WB_STSGT = 'F'
+
                     WHERE
+
                         WB_NUMEMP = ?
                         AND WB_NUMORP = ?
                         AND WB_NUMORI = ?
                         AND WB_NUMREC = ?
                         AND WB_NUMSEQ = ?
                         AND WB_STSGT = 'L'
+
                 `, [
 
                     row.WB_NUMEMP,
@@ -549,9 +627,13 @@ async function getSequenciamentoFromSapiens() {
                     row.WB_NUMORI,
                     row.WB_NUMREC,
                     row.WB_NUMSEQ
+
                 ]);
+
             }
+
         }
+
 
         /*
         ==========================================
@@ -561,9 +643,9 @@ async function getSequenciamentoFromSapiens() {
 
         await connection.commit();
 
-        //console.log('===================================');
-        console.log('Transação Sequenciamento Concluida com Sucesso');
-        //console.log('===================================');
+        logger.info(
+            `[SEQUENCIAMENTO] Transação concluída com sucesso`
+        );
 
         return {
             success: true
@@ -574,25 +656,12 @@ async function getSequenciamentoFromSapiens() {
         if (connection) {
 
             await connection.rollback();
+
         }
 
-        console.error('ERRO:', error);
-
-        if (error.sqlMessage) {
-
-            console.error(
-                'SQL MESSAGE:',
-                error.sqlMessage
-            );
-        }
-
-        if (error.sql) {
-
-            console.error(
-                'SQL:',
-                error.sql
-            );
-        }
+        logger.error(
+            `[SEQUENCIAMENTO] ${error.stack || error.message || error}`
+        );
 
         throw error;
 
@@ -601,8 +670,11 @@ async function getSequenciamentoFromSapiens() {
         if (connection) {
 
             connection.release();
+
         }
+
     }
+
 }
 
 module.exports = {
@@ -610,6 +682,7 @@ module.exports = {
 };
 
 app.listen(9005, () => {
-    console.log('Server running on port 9005');
+    //console.log('Server running on port 7074');
+    logger.info(`[SERVER] Server running on port 9005`);
 });
 

@@ -242,13 +242,20 @@ function Sequenciamento() {
 
   const handleAbrirDesenho = () => {
     if (linhaSelecionada !== null) {
-      let numProd = dadosFiltrados[linhaSelecionada].wb_numProd;
-  
-      // Pegar apenas os 14 primeiros caracteres
-      numProd = numProd.slice(0, 14);
-  
-      const pdfUrl = `http://192.168.0.250:9002/desenhoProduto/${numProd}.pdf`;
-      window.open(pdfUrl, '_blank');
+      if(dadosFiltrados[linhaSelecionada].wb_numEmp == '3'){
+          let numProdBioEnergy = dadosFiltrados[linhaSelecionada].wb_numProd;
+          numProdBioEnergy = numProdBioEnergy.slice(0, 6);
+          const pdfUrl = `http://192.168.0.250:9002/desenhoProdutoBioEnergy/${numProdBioEnergy}.pdf`;
+          window.open(pdfUrl, '_blank');
+
+      } else if (dadosFiltrados[linhaSelecionada].wb_numEmp == '1') {
+
+          let numProd = dadosFiltrados[linhaSelecionada].wb_numProd;
+          // Pegar apenas os 14 primeiros caracteres
+          numProd = numProd.slice(0, 14);
+          const pdfUrl = `http://192.168.0.250:9002/desenhoProduto/${numProd}.pdf`;
+          window.open(pdfUrl, '_blank');
+      }
     } else {
       toast.error('Selecione uma linha!', {
         position: "bottom-center",
@@ -267,11 +274,20 @@ function Sequenciamento() {
 
     const handleAbrirPedido = () => {
       if (linhaSelecionada !== null) {
-        let numPed = dadosFiltrados[linhaSelecionada].wb_numPed;
-    
-    
-        const pdfUrl = `http://192.168.0.250:9002/pedido/${numPed}.pdf`;
-        window.open(pdfUrl, '_blank');
+        if(dadosFiltrados[linhaSelecionada].wb_numEmp == '3'){
+            let numPedBioEnergy = dadosFiltrados[linhaSelecionada].wb_numPed;
+            const pdfUrl = `http://192.168.0.250:9002/pedidoBioEnergy/${numPedBioEnergy}.pdf`;
+            window.open(pdfUrl, '_blank');
+
+        }
+
+        else if (dadosFiltrados[linhaSelecionada].wb_numEmp == '1') {
+            let numPed = dadosFiltrados[linhaSelecionada].wb_numPed;
+            const pdfUrl = `http://192.168.0.250:9002/pedido/${numPed}.pdf`;
+            window.open(pdfUrl, '_blank');
+
+        }
+
       } else {
         toast.error('Selecione uma linha!', {
           position: "bottom-center",
