@@ -5,8 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const loggerBackend = require('../services/loggerBackend');
-
-
+const { postApontamentoBioenergyForSapiens } = require('./../services/postApontamentoBioenergy');
 
 
 const port = 9002;
@@ -130,7 +129,7 @@ app.get('/infoProdutos/:wb_numProd', async (req, res) => {
     }
 
     const [results] = await db.query(
-      'SELECT WB_NUMPROD, WB_CODFAM, WB_DESPRO, WB_DESCPL, WB_DESDER, WB_PROBLK, WB_DESBLK, WB_COMPRO, WB_ESPPRO, WB_LARPRO FROM WB_DADOSPRODUTO WHERE WB_NUMPROD = ?',
+      'SELECT WB_NUMPROD, WB_CODDER, WB_CODFAM, WB_DESPRO, WB_DESCPL, WB_DESDER, WB_PROBLK, WB_DESBLK, WB_COMPRO, WB_ESPPRO, WB_LARPRO FROM WB_DADOSPRODUTO WHERE WB_NUMPROD = ?',
       [wb_numProd]
     );
 
@@ -1124,6 +1123,141 @@ app.post('/ferramenta', async (req, res) => {
             connection.release();
         }
     }
+});
+
+////////////////////////////////////////////////////////////////
+//impressão etiquetas Bioenergy//
+app.post('/printBioenergy', async (req, res) => {
+  const {
+            wb_numOrp,
+            wb_numProd,
+            wb_qtdProd,
+            wb_codDer,
+            wb_codLot,
+            wb_codCli,
+            wb_nomCli,
+            wb_desPro,
+            wb_numEtq,
+            wb_numPed
+
+
+  } = req.body;
+
+// CASO CLIENTE SEJA 886, DESCRIÇÕES DA ETIQUETA DEVEM SER EM INGLES:
+// LOTE = BATCH, QUANTIDADE = QUANTITY, CLIENTE = CLIENT, PRODUTO = PRODUCT, DESCRIÇÃO = DESCRIPTION, DERIVAÇÃO = DERIVATION
+// CLIENTE 886 TBM NAO PODE TER MADE IN BRAZIL NO FINAL DA ETIQUETA 
+// CLIENTE 886 E PRODUTO 800015, DESCRIÇÃO DO CLIENTE DEVE SER "DESCAMPS", DEMAIS PRODUTOS CLIENTE NORMAL VINDO DA API
+
+// INTEGRACAO SEM CODIGO DE CLIENTE OU SEM PEDIDO, CLIENTE DEVE SER "BIOENERGY"
+    const clienteEmIngles = String(wb_codCli) === "886";
+
+    const lote = clienteEmIngles ? "Batch:" : "Lote:";
+    const quantidade = clienteEmIngles ? "Quantity:" : "Quantidade:";
+    const cliente = clienteEmIngles ? "Client:" : "Cliente:";
+    const produto = clienteEmIngles ? "Product:" : "Produto:";
+    const descricao = clienteEmIngles ? "Description:" : "Descricao:";
+    const derivacao = clienteEmIngles ? "Derivation:" : "Derivacao:";
+    const madeInBrazil = clienteEmIngles ? "" : "MADE IN BRAZIL";
+
+    if (clienteEmIngles && String(wb_numProd) === "800015") {
+        wb_desPro = "DESCAMPS";
+    } 
+
+    if(wb_codCli === "0" || wb_codCli === null || wb_numPed === "0" || wb_numPed === null) {
+        wb_nomCli = "BIOENERGY";
+    }
+
+  const zpl = `^XA
+          ^LS0
+          ^FWR
+          ^M15  
+          ^FO15,40,^GB750,1125,2^FS
+          ^FO15,1015,^GB610,150,2^FS
+          ^FO715,48^A0,30,30^FD${lote}^FS
+          ^FO620,65^A0,85,110^FD${wb_codLot}^FS
+          ^FO495,40^GB130,977,2^FS
+          ^FO580,48^A0,30,30^FD${quantidade}^FS
+          ^FO465,470^A0,150,120^FD${wb_qtdProd}^FS
+          ^FO459,48^A0,30,30^FD${cliente}^FS
+          ^FO408,48^A0,40,40^FD${wb_nomCli}^FS
+          ^FO397,40^GB100,977,2^FS
+          ^FO360,48^A0,30,30^FD${produto}^FS
+          ^FO300,40^GB100,977,2^FS
+          ^FO300,817^GB100,200,2^FS
+          ^FO360,820^A0,30,30^FD${derivacao}^FS
+          ^FO300,350^A0,80,80^FD${wb_numProd}^FS
+          ^FO300,880^A0,60,60^FD${wb_codDer}^FS
+          ^FO260,48^A0,30,30^FD${descricao}^FS
+          ^FO215,48^A0,40,40^FD${wb_desPro}^FS
+          ^FO202,40^GB100,977,2^FS
+          ^FO15,40^GB40,977,2^FS
+          ^FO17,430^A0,30,30^FD${madeInBrazil}^FS
+          ^FO060,1050^BY5^BCI,100,N,N,N^FD${wb_numEtq}^FS
+          ^FO99,280^BY5^BC,100,Y,N,N^FD${wb_numEtq}^FS
+          ^XZ`;
+      res.set("Content-Type", "text/plain");
+      res.send(zpl);   
+
+ /*try {
+    const connection = await db.getConnection();
+
+      await connection.execute(
+        `INSERT INTO WB_PRINTETIQUETAS 
+        (WB_NUMORP, WB_NUMPROD, WB_QTDPROD, WB_DATAPONT, 
+          WB_ATRI1, WB_ATRI2, WB_ATRI3, 
+          WB_NUMPED, WB_ITEMPED, WB_TEMFSC, WB_NUMETQ, WB_NOMEREC) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          wb_numOrp,
+          wb_numProd,
+          wb_qtdProd,
+          wb_dtApont,
+          larguraBlanks,
+          espessuraBlanks,
+          comprimentoBlanks,
+          wb_numPed,
+          wb_itemPed,
+          wb_temFsc,
+          wb_numEtq,
+          convertRecurso
+        ]
+      );
+
+      connection.release();
+      //console.log(`✅ Etiqueta ${wb_numEtq} salva no banco.`);
+
+      // Retorna ZPL
+      res.set("Content-Type", "text/plain");
+      res.send(zpl);
+
+    } catch (error) {
+      //console.error("❌ Erro ao salvar etiqueta: ", error.message);
+      loggerBackend.error(`[IMPRESSÃO ETIQUETA] Erro ao salvar etiqueta: ${error.stack || error.message || error}`);
+      res.status(500).json({ error: "Erro ao salvar no banco" });
+    }*/
+});
+
+app.post('/bioenergyApontamento', async (req, res) => {
+
+    try {
+
+        const retorno = await postApontamentoBioenergyForSapiens(req.body);
+        //console.log('Dados vindos: ', req.body);
+        console.log('Retorno do WS:', retorno);
+        
+        return res.json(retorno);
+
+    } catch (err) {
+
+        logger.error(err.stack || err.message);
+
+        return res.status(500).json({
+            sucesso: false,
+            mensagem: "Erro interno."
+        });
+
+    }
+
 });
 
 

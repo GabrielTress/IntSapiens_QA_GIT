@@ -196,6 +196,9 @@ function Sequenciamento() {
   else if (numRec === '07') {
     navigate('/apontamentoColadeira', { state: { linha, filtroID: inputId } });
   } 
+  else if (numRec === '80') {
+    navigate('/apontamentoBioenergy', { state: { linha, filtroID: inputId } });
+  } 
   else {
     navigate('/apontamento', { state: { linha, filtroID: inputId } });
   }

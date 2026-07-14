@@ -22,7 +22,7 @@ const transport = new winston.transports.DailyRotateFile({
 
     // Exemplo:
     // logs/2026-05-22.log
-    filename: path.join(logDir,'Integração-SOAP-%DATE%.log'),
+    filename: path.join(logDir,'Integração-SOAP-QA-%DATE%.log'),
 
     datePattern: 'YYYY-MM-DD',
 

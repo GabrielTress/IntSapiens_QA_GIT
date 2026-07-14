@@ -8,6 +8,7 @@ import Frame from './Frame/frame';
 import Inventario from './Inventario/inventario';
 import ApontamentoFinger from './ApontamentoFinger/apontamentoFinger';
 import ApontamentoColadeira from './ApontamentoColadeira/apontamentoColadeira';
+import ApontamentoBioenergy from './ApontamentoBioenergy/apontamentoBioenergy';
 import ConsultaDesenho from './ConsultaDesenho/consultaDesenho';
 import ConsultaPedido from './ConsultaPedido/consultaPedido';
 import Importar from './Importar/importar';
@@ -15,6 +16,7 @@ import Repasse from './Repasse/repasse';
 import Reimpressao from './Reimpressao/reimpressao';
 import Pnc from './Pnc/pnc';
 import './App.css';
+
 
 
 
@@ -32,6 +34,7 @@ const App = () => {
         <Route path="/importar-sapiens" element={<Importar />} />
         <Route path="/apontamentoFinger" element={<ApontamentoFinger/>}/>
         <Route path="/apontamentoColadeira" element={<ApontamentoColadeira/>}/>
+        <Route path="/apontamentoBioenergy" element={<ApontamentoBioenergy/>}/>
         <Route path="/inventario" element={<Inventario/>}/>
         <Route path="/consultaDesenho" element={<ConsultaDesenho/>}/>
         <Route path="/consultaPedido" element={<ConsultaPedido/>}/>

@@ -213,108 +213,68 @@ useEffect(() => {
     }
   };
   
-  const handleSubmitRespostas = async () => {
+const handleSubmitRespostas = async () => {
+  const opExiste = await validaOp();
+  if (!opExiste) {
+    toast.error("OP já Finalizada!", { position: "bottom-center", autoClose: 2000, className: "custom-toast-error" });
+    return;
+  }
 
-      // 1. Valida OP antes de salvar
-    const opExiste = await validaOp();
+  const preenchido = itensChecklist.every((_, index) => {
+    const resposta = respostas[index];
+    return resposta !== undefined && resposta !== null && resposta !== '';
+  });
+  if (!preenchido) {
+    toast.error("Preencha todos os campos do checklist!", { position: "bottom-center", autoClose: 2000, className: 'custom-toast-error' });
+    return;
+  }
 
-        if (!opExiste) {
-          toast.error("OP já Finalizada!", {
-            position: "bottom-center",
-            autoClose: 2000,
-            className: "custom-toast-error"
-          });
-          return; // interrompe o fluxo do salvar
-        }
-  
-    
-    const preenchido = itensChecklist.every((_, index) => {
-      const resposta = respostas[index];
-      return resposta !== undefined && resposta !== null && resposta !== '';
+  const validacaoImpressora = await verificarImpressora();
 
+  if (!validacaoImpressora) {
+    toast.error("Zebra Browzer Print não localizado!", { position: "bottom-center", autoClose: 2000, className: 'custom-toast-error' });
+    return;
+  }
 
-    });
-    if (!preenchido) {
-      toast.error("Preencha todos os campos do checklist!", {
-        position: "bottom-center",
-        autoClose: 2000,
-        className: 'custom-toast-error'
-      });
+  if (etiquetaParaProcessarIndex !== null) {
+    // AGORA ESPERA O RESULTADO REAL DA IMPRESSÃO
+    const impressaoOk = await handleProcessarEtiqueta(etiquetaParaProcessarIndex);
+
+    if (!impressaoOk) {
+      // não grava checklist e mantém o modal aberto para o usuário corrigir e tentar de novo
       return;
     }
 
-    const validacaoImpressora = await verificarImpressora();
+    try {
+      const checklistComRespostas = itensChecklist.map((item, index) => ({
+        parametro: item.WB_DESVER, alvo: item.WB_VLRALV, minimo: item.WB_VLRMIN, maximo: item.WB_VLRMAX,
+        seqRot: item.WB_SEQROT, codEst: item.WB_CODEST, seqEin: item.WB_SEQPXI, seqEiv: item.WB_SEQVER,
+        codPin: item.WB_CODINP, codRot: item.WB_CODROT, sitEin: 1, tipInp: 'I', sitAva: 'A', notEiv: 10,
+        valorDigitado: respostas[index]
+      }));
 
-    if (validacaoImpressora) {
-      if (etiquetaParaProcessarIndex !== null) {
-    
-        handleProcessarEtiqueta(etiquetaParaProcessarIndex);
-        
-        try {
-          const checklistComRespostas = itensChecklist.map((item, index) => ({
-            parametro: item.WB_DESVER,
-            alvo: item.WB_VLRALV,
-            minimo: item.WB_VLRMIN,
-            maximo: item.WB_VLRMAX,
-            seqRot: item.WB_SEQROT,
-            codEst: item.WB_CODEST,
-            seqEin: item.WB_SEQPXI,
-            seqEiv: item.WB_SEQVER,
-            codPin: item.WB_CODINP,
-            codRot: item.WB_CODROT,
-            sitEin: 1,
-            tipInp: 'I',
-            sitAva: 'A',
-            notEiv: 10,
-            valorDigitado: respostas[index]
-          }));
-    
-          await axios.post('http://192.168.0.250:9002/saveChecklistQualidadeFinger', {
-            wb_numEmp,
-            wb_numProd,
-            wb_numRec,
-            wb_numOrp,
-            wb_numOri,
-            wb_numEtq: obterEtiqueta[etiquetaParaProcessarIndex]?.etiqueta,
-            checklist: checklistComRespostas,
-            wb_data: moment(wb_dtApont, 'DD-MM-YYYY HH:mm:ss').format('DD/MM/YYYY'),
-            wb_hora: moment(wb_dtApont, 'DD-MM-YYYY HH:mm:ss').format('HH:mm:ss'),
-            wb_process,
-            wb_nomeRec: recurso,
-            wb_operador: operador,
-            operacao: 'I',
-            dasIns: 'PRD',
-            fasIns: 'PRD',
-            sitEpi: 1,
-            qtdRec: obterEtiqueta[etiquetaParaProcessarIndex]?.quantidade,
-            codDer: 0,
-            
-          });
-
-         
-    
-        } catch (error) {
-          toast.error("Erro ao gravar checklist!", {
-            position: "bottom-center",
-            autoClose: 2000,
-            className: 'custom-toast-error'
-          });
-        }
-      }
-      await new Promise(resolve => setTimeout(resolve, 300));
-      await carregarSaldos();
-      setShowChecklist(false);
-      setEtiquetaParaProcessarIndex(null);
-      setRespostas({});
-      
-    } else {
-      toast.error("Zebra Browzer Print não localizado!", {
-        position: "bottom-center",
-        autoClose: 2000,
-        className: 'custom-toast-error'
+      await axios.post('http://192.168.0.250:9002/saveChecklistQualidadeFinger', {
+        wb_numEmp, wb_numProd, wb_numRec, wb_numOrp, wb_numOri,
+        wb_numEtq: obterEtiqueta[etiquetaParaProcessarIndex]?.etiqueta,
+        checklist: checklistComRespostas,
+        wb_data: moment(wb_dtApont, 'DD-MM-YYYY HH:mm:ss').format('DD/MM/YYYY'),
+        wb_hora: moment(wb_dtApont, 'DD-MM-YYYY HH:mm:ss').format('HH:mm:ss'),
+        wb_process, wb_nomeRec: recurso, wb_operador: operador, operacao: 'I',
+        dasIns: 'PRD', fasIns: 'PRD', sitEpi: 1,
+        qtdRec: obterEtiqueta[etiquetaParaProcessarIndex]?.quantidade, codDer: 0,
       });
+    } catch (error) {
+      toast.error("Erro ao gravar checklist!", { position: "bottom-center", autoClose: 2000, className: 'custom-toast-error' });
+      return; // não continua o fluxo se o checklist falhou ao gravar
     }
   }
+
+  await new Promise(resolve => setTimeout(resolve, 300));
+  await carregarSaldos();
+  setShowChecklist(false);
+  setEtiquetaParaProcessarIndex(null);
+  setRespostas({});
+};
 
   
   const handleCancelar = () => {
@@ -324,26 +284,23 @@ useEffect(() => {
 
   /////////////////////////////////////checklist 
 
-  const handleProcessarEtiqueta = async (index) => {
+
+ const handleProcessarEtiqueta = (index) => {
+  return new Promise(async (resolve) => {
     const etiqueta = obterEtiqueta[index];
 
-    // Verifica se a etiqueta já foi apontada
     const etiquetaJaExiste = await verificaSeEtiquetaJaExiste(etiqueta.etiqueta);
     if (etiquetaJaExiste) {
       toast.error(`Etiqueta ${etiqueta.etiqueta} já foi apontada anteriormente.`, {
-        position: "bottom-center",
-        autoClose: 2000,
-        className: 'custom-toast-error'
+        position: "bottom-center", autoClose: 2000, className: 'custom-toast-error'
       });
-      return;
+      return resolve(false);
     }
     if (etiqueta.processado !== 'N') {
       toast.error('Etiqueta já foi processada!', {
-        position: "bottom-center",
-        autoClose: 2000,
-        className: 'custom-toast-error'
+        position: "bottom-center", autoClose: 2000, className: 'custom-toast-error'
       });
-      return;
+      return resolve(false);
     }
 
     try {
@@ -351,186 +308,105 @@ useEffect(() => {
       const larguraBlanks = parseFloat(infoTecnicas.WB_LARPRO) * 1000;
       const espessuraBlanks = parseFloat(infoTecnicas.WB_ESPPRO) * 1000;
 
-      if (validacaoOp) {
-        const quantidadeOriginal = parseFloat(wb_qtdPrev);
-        const quantidadeProduzida = parseFloat(etiqueta.quantidade || 0);
-    
-        // Calcula a quantidade já produzida a partir do banco de dados
-        const quantidadeJaProduzida = linhaSelecionada?.wb_qtdProd || 0;
-        const quantidadeTotalProduzida = quantidadeJaProduzida + quantidadeProduzida;
-        const quantidadeMaximaPermitida = quantidadeOriginal * 1.1;
+      if (!validacaoOp) {
+        toast.error('OP ja finalizada ou não encontrada', {
+          position: "bottom-center", autoClose: 2000, className: 'custom-toast-error'
+        });
+        return resolve(false);
+      }
 
-        if (wb_numRec && wb_numOrp && etiqueta.quantidade && recurso && operador && Number(etiqueta.quantidade) > 0) {
-          if (quantidadeTotalProduzida <= quantidadeMaximaPermitida) {
-            try {
+      const quantidadeOriginal = parseFloat(wb_qtdPrev);
+      const quantidadeProduzida = parseFloat(etiqueta.quantidade || 0);
+      const quantidadeJaProduzida = linhaSelecionada?.wb_qtdProd || 0;
+      const quantidadeTotalProduzida = quantidadeJaProduzida + quantidadeProduzida;
+      const quantidadeMaximaPermitida = quantidadeOriginal * 1.1;
 
+      if (!(wb_numRec && wb_numOrp && etiqueta.quantidade && recurso && operador && Number(etiqueta.quantidade) > 0)) {
+        toast.error('Falta preencher quantidade, recurso ou operador!', {
+          position: "bottom-center", autoClose: 2000, className: 'custom-toast-error'
+        });
+        return resolve(false);
+      }
 
-              const { data: zpl } = await axios.post('http://192.168.0.250:9002/printFinger', {
-                wb_numOrp,
-                wb_numProd,
-                wb_qtdProd: etiqueta.quantidade,
-                wb_dtApont,
-                wb_numPed: linhaSelecionada.wb_numPed,
-                wb_itemPed: linhaSelecionada.wb_itemPed,
-                larguraBlanks,
-                espessuraBlanks,
-                comprimentoBlanks: infoTecnicas.WB_COMPRO,
-                wb_temFsc,
-                wb_numEtq: etiqueta.etiqueta,
-                wb_nomeRec: recurso
-              }, { responseType: 'text' });
+      if (quantidadeTotalProduzida > quantidadeMaximaPermitida) {
+        toast.error('Quantidade produzida ultrapassa 10% do permitido.', {
+          position: "bottom-center", autoClose: 2500, className: 'custom-toast-error'
+        });
+        return resolve(false);
+      }
 
-              if (!window.BrowserPrint) {
-                toast.error("Zebra Browser Print não está disponível.",{
-                  position: "bottom-center",
-                  autoClose: 2000,
-                  hideProgressBar: false,
-                  closeOnClick: false,
-                  pauseOnHover: true,
-                  draggable: true,
-                  progress: undefined,
-                  className: 'custom-toast-error'
-                });
-                return;
-              }
-              window.BrowserPrint.getDefaultDevice("printer", async function(printer) {
-                if (!printer) {
-                  toast.error("Nenhuma impressora Zebra encontrada.", {
-                    position: "bottom-center",
-                    autoClose: 2000,
-                    hideProgressBar: false,
-                    closeOnClick: false,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    className: 'custom-toast-error'
-                  });
-                  return;
-                }
-              
-          
-               printer.send(zpl, async function() {
-                  toast.success(`Etiqueta ${etiqueta.etiqueta} enviada à impressora!`, {
-                    position: "bottom-center",
-                    autoClose: 2000,
-                    className: 'custom-toast-sucess'
-                  });
-                  
-          
-                  await axios.post('http://192.168.0.250:9002/apontamento', {
-                    wb_numEmp,
-                    wb_numRec,
-                    wb_numOri,
-                    wb_numSeq,
-                    wb_numOrp,
-                    wb_numProd,
-                    wb_qtdProd: quantidadeProduzida,
-                    wb_qtdRef: 0,
-                    wb_dtApont,
-                    wb_process: 'N'
-                  });
-          
-          
-                  await axios.post('http://192.168.0.250:9002/apontamentoEtiqueta', {
-                    wb_numEmp,
-                    wb_numRec: recurso,
-                    wb_numOri,
-                    wb_numOrp,
-                    wb_qtdProd: etiqueta.quantidade,
-                    wb_dtApont,
-                    wb_process: 'N',
-                    wb_numEtq: etiqueta.etiqueta,
-                    wb_operador: operador
-                  });
+      try {
+        const { data: zpl } = await axios.post('http://192.168.0.250:9002/printFinger', {
+          wb_numOrp, wb_numProd, wb_qtdProd: etiqueta.quantidade, wb_dtApont,
+          wb_numPed: linhaSelecionada.wb_numPed, wb_itemPed: linhaSelecionada.wb_itemPed,
+          larguraBlanks, espessuraBlanks, comprimentoBlanks: infoTecnicas.WB_COMPRO,
+          wb_temFsc, wb_numEtq: etiqueta.etiqueta, wb_nomeRec: recurso
+        }, { responseType: 'text' });
 
-                  await axios.put('http://192.168.0.250:9002/updateObterEtiquetaFinger', {
-                    wb_numEtq: etiqueta.etiqueta,
-                    wb_qtdProd: etiqueta.quantidade,
-                    wb_process: 'S'
-                  });
-          
-                  const atualizado = [...obterEtiqueta];
-                  atualizado[index].processado = 'S';
-                  setObterEtiqueta(atualizado);
-          
-                }, function(error) {
-                  toast.error("Erro ao imprimir: " + error , {
-                    position: "bottom-center",
-                    autoClose: 2000,
-                    hideProgressBar: false,
-                    closeOnClick: false,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    className: 'custom-toast-error'
-                  });
-                });
-              });
-          
-            }catch (error) {
-              console.error('Erro ao realizar o apontamento:', error);
-              toast.error('Erro ao realizar apontamento', {
-                position: "bottom-center",
-                autoClose: 2000,
-                hideProgressBar: false,
-                closeOnClick: false,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                className: 'custom-toast-error'
-              });
-            }
-            }else {
-                      toast.error('Quantidade produzida ultrapassa 10% do permitido.', {
-                        position: "bottom-center",
-                        autoClose: 2500,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                        progress: undefined,
-                        className: 'custom-toast-error'
-                      });
-            }
-        }else{
-          toast.error('Falta preencher quantidade, recurso ou operador!', {
-            position: "bottom-center",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: false,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            className: 'custom-toast-error'
+        if (!window.BrowserPrint) {
+          toast.error("Zebra Browser Print não está disponível.", {
+            position: "bottom-center", autoClose: 2000, className: 'custom-toast-error'
           });
+          return resolve(false);
         }
 
-        }else{
-          toast.error('OP ja finalizada ou não encontrada', {
-            position: "bottom-center",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: false,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            className: 'custom-toast-error'
-          });
-        }
-        }catch (error) {
-          toast.error('Erro ao processar etiqueta.', {
-            position: "bottom-center",
-            autoClose: 2500,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            className: 'custom-toast-error'
+        window.BrowserPrint.getDefaultDevice("printer", async function (printer) {
+          if (!printer) {
+            toast.error("Nenhuma impressora Zebra encontrada.", {
+              position: "bottom-center", autoClose: 2000, className: 'custom-toast-error'
             });
-        };
+            return resolve(false);
+          }
 
-  }
+          printer.send(zpl, async function () {
+            // SUCESSO DE IMPRESSÃO CONFIRMADO
+            toast.success(`Etiqueta ${etiqueta.etiqueta} enviada à impressora!`, {
+              position: "bottom-center", autoClose: 2000, className: 'custom-toast-sucess'
+            });
+
+            await axios.post('http://192.168.0.250:9002/apontamento', {
+              wb_numEmp, wb_numRec, wb_numOri, wb_numSeq, wb_numOrp, wb_numProd,
+              wb_qtdProd: quantidadeProduzida, wb_qtdRef: 0, wb_dtApont, wb_process: 'N'
+            });
+
+            await axios.post('http://192.168.0.250:9002/apontamentoEtiqueta', {
+              wb_numEmp, wb_numRec: recurso, wb_numOri, wb_numOrp,
+              wb_qtdProd: etiqueta.quantidade, wb_dtApont, wb_process: 'N',
+              wb_numEtq: etiqueta.etiqueta, wb_operador: operador
+            });
+
+            await axios.put('http://192.168.0.250:9002/updateObterEtiquetaFinger', {
+              wb_numEtq: etiqueta.etiqueta, wb_qtdProd: etiqueta.quantidade, wb_process: 'S'
+            });
+
+            const atualizado = [...obterEtiqueta];
+            atualizado[index].processado = 'S';
+            setObterEtiqueta(atualizado);
+
+            resolve(true); // <<< só aqui é sucesso de verdade
+          }, function (error) {
+            toast.error("Erro ao imprimir: " + error, {
+              position: "bottom-center", autoClose: 2000, className: 'custom-toast-error'
+            });
+            resolve(false); // <<< falha real de impressão
+          });
+        });
+      } catch (error) {
+        console.error('Erro ao realizar o apontamento:', error);
+        toast.error('Erro ao realizar apontamento', {
+          position: "bottom-center", autoClose: 2000, className: 'custom-toast-error'
+        });
+        resolve(false);
+      }
+    } catch (error) {
+      toast.error('Erro ao processar etiqueta.', {
+        position: "bottom-center", autoClose: 2500, className: 'custom-toast-error'
+      });
+      resolve(false);
+    }
+  });
+};
+  
 
   return (
     <div className="container-apontamentoFinger">

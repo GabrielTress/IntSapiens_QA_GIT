@@ -190,7 +190,9 @@ const Repasse = () => {
   const btt16 = "BATIDA";
   const btt17 = "MORDIDA";
   const btt18 = "RESSALTO EMENDA FINGER";
-  const btt19 = "OUTROS";
+  const btt19 = "NÓ";
+  const btt20 = "MEDULA";
+  const btt21 = "OUTROS";
 
 
 
@@ -759,7 +761,7 @@ const Repasse = () => {
     } else if (buttonNumber === 19 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
       Axios.post("http://192.168.0.250:9002/Repasse", {
         op: op,
-        motivo: btt18,
+        motivo: btt19,
         data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
         quantidade: quantidade,
         perfil: perfil,
@@ -787,7 +789,70 @@ const Repasse = () => {
       }).catch((err) => {
         console.log(err);
       })
-    }
+    } else if (buttonNumber === 20 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
+      Axios.post("http://192.168.0.250:9002/Repasse", {
+        op: op,
+        motivo: btt20,
+        data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
+        quantidade: quantidade,
+        perfil: perfil,
+        espessura: espessuraAut,
+        largura: larguraAut,
+        status_largura: verificaValores(),
+        recurso: linha,
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec,
+        qtdPrev: linhaSelecionada?.wb_qtdPrev
+      }).then((response) => {
+        toast.success('Apontamento OK', {
+          position: "bottom-center",
+          autoClose: 1000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          className: 'custom-toast-sucess',
+        });
+        
+      // Atualizar a quantidade total após a inserção
+      setQuantidadeTotal(response.data.quantidadeTotal);
+      }).catch((err) => {
+        console.log(err);
+      })
+    } else if (buttonNumber === 21 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
+      Axios.post("http://192.168.0.250:9002/Repasse", {
+        op: op,
+        motivo: btt21,
+        data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
+        quantidade: quantidade,
+        perfil: perfil,
+        espessura: espessuraAut,
+        largura: larguraAut,
+        status_largura: verificaValores(),
+        recurso: linha,
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec,
+        qtdPrev: linhaSelecionada?.wb_qtdPrev
+      }).then((response) => {
+        toast.success('Apontamento OK', {
+          position: "bottom-center",
+          autoClose: 1000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          className: 'custom-toast-sucess',
+        });
+        
+      // Atualizar a quantidade total após a inserção
+      setQuantidadeTotal(response.data.quantidadeTotal);
+      }).catch((err) => {
+        console.log(err);
+      })
+    } 
+    
     
     else{
         toast.error('Preencher todos os valores!', {
@@ -886,6 +951,8 @@ const Repasse = () => {
         <button className = "buttonRepasse" onClick={() => handleButtonClick(16)}>{btt16}</button>
         <button className = "buttonRepasse" onClick={() => handleButtonClick(17)}>{btt17}</button>
         <button className = "buttonRepasse" onClick={() => handleButtonClick(18)}>{btt18}</button>
+        <button className = "buttonRepasse" onClick={() => handleButtonClick(18)}>{btt20}</button>
+        <button className = "buttonRepasse" onClick={() => handleButtonClick(18)}>{btt21}</button>
         <button className = "buttonRepasse" onClick={() => handleButtonClick(19)}>{btt19}</button>
       </div>
       <div className="label-container">
