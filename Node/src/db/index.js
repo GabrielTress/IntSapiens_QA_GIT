@@ -5,7 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const loggerBackend = require('../services/loggerBackend');
-const { postApontamentoBioenergyForSapiens } = require('./../services/postApontamentoBioenergy');
+const { postApontamentoBioenergyForSapiens, confirmarImpressaoBioenergy, buscarApontamentoPendenteBioenergy } = require('./../services/postApontamentoBioenergy');
 
 
 const port = 9002;
@@ -1128,20 +1128,21 @@ app.post('/ferramenta', async (req, res) => {
 ////////////////////////////////////////////////////////////////
 //impressão etiquetas Bioenergy//
 app.post('/printBioenergy', async (req, res) => {
-  const {
-            wb_numOrp,
-            wb_numProd,
-            wb_qtdProd,
-            wb_codDer,
-            wb_codLot,
-            wb_codCli,
-            wb_nomCli,
-            wb_desPro,
-            wb_numEtq,
-            wb_numPed
+    const {
+        wb_numOrp,
+        wb_numProd,
+        wb_qtdProd,
+        wb_codDer,
+        wb_codLot,
+        wb_codCli,
+        wb_numEtq,
+        wb_numPed
+    } = req.body;
 
-
-  } = req.body;
+    let {
+        wb_nomCli,
+        wb_desPro
+    } = req.body;
 
 // CASO CLIENTE SEJA 886, DESCRIÇÕES DA ETIQUETA DEVEM SER EM INGLES:
 // LOTE = BATCH, QUANTIDADE = QUANTITY, CLIENTE = CLIENT, PRODUTO = PRODUCT, DESCRIÇÃO = DESCRIPTION, DERIVAÇÃO = DERIVATION
@@ -1155,12 +1156,12 @@ app.post('/printBioenergy', async (req, res) => {
     const quantidade = clienteEmIngles ? "Quantity:" : "Quantidade:";
     const cliente = clienteEmIngles ? "Client:" : "Cliente:";
     const produto = clienteEmIngles ? "Product:" : "Produto:";
-    const descricao = clienteEmIngles ? "Description:" : "Descricao:";
-    const derivacao = clienteEmIngles ? "Derivation:" : "Derivacao:";
+    const descricao = clienteEmIngles ? "Description:" : "Descrição:";
+    const derivacao = clienteEmIngles ? "Derivation:" : "Derivação:";
     const madeInBrazil = clienteEmIngles ? "" : "MADE IN BRAZIL";
 
     if (clienteEmIngles && String(wb_numProd) === "800015") {
-        wb_desPro = "DESCAMPS";
+        wb_nomCli = "DESCAMPS";
     } 
 
     if(wb_codCli === "0" || wb_codCli === null || wb_numPed === "0" || wb_numPed === null) {
@@ -1168,6 +1169,7 @@ app.post('/printBioenergy', async (req, res) => {
     }
 
   const zpl = `^XA
+          ^CI28
           ^LS0
           ^FWR
           ^M15  
@@ -1195,46 +1197,9 @@ app.post('/printBioenergy', async (req, res) => {
           ^FO060,1050^BY5^BCI,100,N,N,N^FD${wb_numEtq}^FS
           ^FO99,280^BY5^BC,100,Y,N,N^FD${wb_numEtq}^FS
           ^XZ`;
-      res.set("Content-Type", "text/plain");
+      res.set("Content-Type", "text/plain; charset=utf-8");
       res.send(zpl);   
 
- /*try {
-    const connection = await db.getConnection();
-
-      await connection.execute(
-        `INSERT INTO WB_PRINTETIQUETAS 
-        (WB_NUMORP, WB_NUMPROD, WB_QTDPROD, WB_DATAPONT, 
-          WB_ATRI1, WB_ATRI2, WB_ATRI3, 
-          WB_NUMPED, WB_ITEMPED, WB_TEMFSC, WB_NUMETQ, WB_NOMEREC) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          wb_numOrp,
-          wb_numProd,
-          wb_qtdProd,
-          wb_dtApont,
-          larguraBlanks,
-          espessuraBlanks,
-          comprimentoBlanks,
-          wb_numPed,
-          wb_itemPed,
-          wb_temFsc,
-          wb_numEtq,
-          convertRecurso
-        ]
-      );
-
-      connection.release();
-      //console.log(`✅ Etiqueta ${wb_numEtq} salva no banco.`);
-
-      // Retorna ZPL
-      res.set("Content-Type", "text/plain");
-      res.send(zpl);
-
-    } catch (error) {
-      //console.error("❌ Erro ao salvar etiqueta: ", error.message);
-      loggerBackend.error(`[IMPRESSÃO ETIQUETA] Erro ao salvar etiqueta: ${error.stack || error.message || error}`);
-      res.status(500).json({ error: "Erro ao salvar no banco" });
-    }*/
 });
 
 app.post('/bioenergyApontamento', async (req, res) => {
@@ -1260,6 +1225,57 @@ app.post('/bioenergyApontamento', async (req, res) => {
 
 });
 
+// NOVA ROTA: confirma que a etiqueta foi realmente impressa
+// (front-end chama isso dentro do callback de sucesso do printer.send)
+app.post('/bioenergyConfirmaImpressao', async (req, res) => {
+    try {
+        const { wb_numEtq } = req.body;
+
+        if (!wb_numEtq) {
+            return res.status(400).json({
+                sucesso: false,
+                mensagem: "wb_numEtq é obrigatório."
+            });
+        }
+
+        const retorno = await confirmarImpressaoBioenergy(wb_numEtq);
+        return res.json(retorno);
+    } catch (err) {
+        logger.error(err.stack || err.message);
+        return res.status(500).json({
+            sucesso: false,
+            mensagem: "Erro interno."
+        });
+    }
+});
+
+// confirmada como impressa para esta OP/Recurso (evita duplicar lote no SOAP)
+app.get('/bioenergyPendente', async (req, res) => {
+    try {
+        const { wb_numEmp, wb_numOrp, wb_numRec } = req.query;
+
+        if (!wb_numEmp || !wb_numOrp || !wb_numRec) {
+            return res.status(400).json({
+                sucesso: false,
+                mensagem: "wb_numEmp, wb_numOrp e wb_numRec são obrigatórios."
+            });
+        }
+
+        const retorno = await buscarApontamentoPendenteBioenergy({
+            numEmp: wb_numEmp,
+            numOrp: wb_numOrp,
+            numRec: wb_numRec
+        });
+
+        return res.json(retorno);
+    } catch (err) {
+        logger.error(err.stack || err.message);
+        return res.status(500).json({
+            sucesso: false,
+            mensagem: "Erro interno."
+        });
+    }
+});
 
 ///////////////////////////////////////
 
