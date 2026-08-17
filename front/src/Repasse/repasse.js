@@ -65,7 +65,8 @@ const Repasse = () => {
     setQuantidadeTotal(0)
   };
 
-  const [quantidadeTotal, setQuantidadeTotal] = useState(0);
+  const [quantidadeTotal, setQuantidadeTotal] = useState([]);
+  const [motivoBanco, setMotivoBanco] = useState([]);
 
   const linhaMap = {
     "19": "Pintura 1",
@@ -190,9 +191,10 @@ const Repasse = () => {
   const btt16 = "BATIDA";
   const btt17 = "MORDIDA";
   const btt18 = "RESSALTO EMENDA FINGER";
-  const btt19 = "NÓ";
-  const btt20 = "MEDULA";
-  const btt21 = "OUTROS";
+  const btt19 = "OUTROS";
+  const btt20 = "REBARBA";
+  const btt21 = "NÓ";
+  const btt22 = "MEDULA";
 
 
 
@@ -225,6 +227,8 @@ const Repasse = () => {
         });
       // Atualizar a quantidade total após a inserção
        setQuantidadeTotal(response.data.quantidadeTotal);
+       setMotivoBanco(response.data.motivoBanco);
+       console.log("Response: ", response.data);
       }).catch((err) => {
         console.log(err);
       });
@@ -256,6 +260,8 @@ const Repasse = () => {
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
+      console.log("Response: ", response.data);
       }).catch((err) => {
         console.log(err);
       });
@@ -287,6 +293,7 @@ const Repasse = () => {
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
       }).catch((err) => {
         console.log(err);
       });
@@ -318,6 +325,7 @@ const Repasse = () => {
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
       }).catch((err) => {
         console.log(err);
       });
@@ -349,6 +357,7 @@ const Repasse = () => {
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
       }).catch((err) => {
         console.log(err);
       });
@@ -380,6 +389,7 @@ const Repasse = () => {
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
       }).catch((err) => {
         console.log(err);
       });
@@ -412,6 +422,7 @@ const Repasse = () => {
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
       }).catch((err) => {
         console.log(err);
       });
@@ -443,6 +454,7 @@ const Repasse = () => {
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
       }).catch((err) => {
         console.log(err);
       });
@@ -474,6 +486,7 @@ const Repasse = () => {
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
       }).catch((err) => {
         console.log(err);
       });
@@ -505,6 +518,7 @@ const Repasse = () => {
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
       }).catch((err) => {
         console.log(err);
       });
@@ -536,6 +550,7 @@ const Repasse = () => {
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
       }).catch((err) => {
         console.log(err);
       });
@@ -567,6 +582,7 @@ const Repasse = () => {
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
       }).catch((err) => {
         console.log(err);
       });
@@ -598,6 +614,7 @@ const Repasse = () => {
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
       }).catch((err) => {
         console.log(err);
       });
@@ -629,6 +646,7 @@ const Repasse = () => {
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
       }).catch((err) => {
         console.log(err);
       });
@@ -660,6 +678,7 @@ const Repasse = () => {
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
       }).catch((err) => {
         console.log(err);
       });
@@ -691,6 +710,7 @@ const Repasse = () => {
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
       }).catch((err) => {
         console.log(err);
       });
@@ -722,6 +742,7 @@ const Repasse = () => {
         });
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
       }).catch((err) => {
         console.log(err);
       });
@@ -754,6 +775,7 @@ const Repasse = () => {
         
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
       }).catch((err) => {
         console.log(err);
       });
@@ -786,6 +808,7 @@ const Repasse = () => {
         
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
       }).catch((err) => {
         console.log(err);
       })
@@ -817,6 +840,7 @@ const Repasse = () => {
         
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
       }).catch((err) => {
         console.log(err);
       })
@@ -848,11 +872,44 @@ const Repasse = () => {
         
       // Atualizar a quantidade total após a inserção
       setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
       }).catch((err) => {
         console.log(err);
       })
-    } 
-    
+    } else if (buttonNumber === 22 && op !== "" && perfil !== "" && espessuraAut !== "" && larguraAut !== "" && linha !== "") {
+      Axios.post("http://192.168.0.250:9002/Repasse", {
+        op: op,
+        motivo: btt22,
+        data: moment(date).format('DD-MM-YYYY HH:mm:ss'),
+        quantidade: quantidade,
+        perfil: perfil,
+        espessura: espessuraAut,
+        largura: larguraAut,
+        status_largura: verificaValores(),
+        recurso: linha,
+        tipo_Apt: 'REPASSE',
+        numrec: linhaSelecionada?.wb_numRec,
+        qtdPrev: linhaSelecionada?.wb_qtdPrev
+      }).then((response) => {
+        toast.success('Apontamento OK', {
+          position: "bottom-center",
+          autoClose: 1000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          className: 'custom-toast-sucess',
+        });
+        
+      // Atualizar a quantidade total após a inserção
+      setQuantidadeTotal(response.data.quantidadeTotal);
+      setMotivoBanco(response.data.motivoBanco);
+      }).catch((err) => {
+        console.log(err);
+      })
+    }
+
     
     else{
         toast.error('Preencher todos os valores!', {
@@ -953,10 +1010,32 @@ const Repasse = () => {
         <button className = "buttonRepasse" onClick={() => handleButtonClick(18)}>{btt18}</button>
         <button className = "buttonRepasse" onClick={() => handleButtonClick(18)}>{btt20}</button>
         <button className = "buttonRepasse" onClick={() => handleButtonClick(18)}>{btt21}</button>
+        <button className = "buttonRepasse" onClick={() => handleButtonClick(19)}>{btt22}</button>
         <button className = "buttonRepasse" onClick={() => handleButtonClick(19)}>{btt19}</button>
+        
       </div>
       <div className="label-container">
         <label className = "labelRepasse">A OP {op} possui {quantidadeTotal} peças apontadas.</label>
+      </div>
+      <div className="tableRepasseContainer">
+        <table className="tableRepasse">
+          <thead>
+            <tr>
+              <th>Motivo</th>
+              <th>Quantidade</th>
+            </tr>
+          </thead>
+
+            <tbody>
+              {motivoBanco.map((item, index) => (
+                <tr key={index}>
+                  <td>{item.motivo}</td>
+                  <td>{item.quantidadeTotal}</td>
+                </tr>
+              ))}
+            
+          </tbody>
+        </table>
       </div>
       <ToastContainer />
     </div>

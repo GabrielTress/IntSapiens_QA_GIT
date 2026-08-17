@@ -336,7 +336,7 @@ async function getSequenciamentoFromSapiens() {
 
             const [rows] = await connection.execute(`
 
-                SELECT WB_STSGT
+                SELECT WB_STSGT, WB_QTDPROD
                 FROM WB_SEQLIST
                 WHERE
 
@@ -354,7 +354,7 @@ async function getSequenciamentoFromSapiens() {
                 registro.numOrp,
                 registro.numOri,
                 registro.numRec,
-                registro.numSeq
+                registro.numSeq,
 
             ]);
 
@@ -369,15 +369,81 @@ async function getSequenciamentoFromSapiens() {
 
                 const statusAtual =
                     rows[0].WB_STSGT;
+                const qtdProdAtual =
+                    toInt(rows[0].WB_QTDPROD);    
 
-
+                
                 /*
                 ======================================
                 STATUS F
                 ======================================
                 */
 
-                if (statusAtual === 'F') {
+                if (statusAtual === 'F' && qtdProdAtual == 0 ) {
+                    
+                    /*
+                    ======================================
+                    REABERTURA - APENAS numOri = '00'
+                    O ERP as vezes deixa de enviar um
+                    numRec de forma intermitente. Se ele
+                    voltar a aparecer no SOAP, reabrimos
+                    o registro (F -> L) somente quando
+                    numOri = '00'.
+                    ======================================
+                    */
+
+                    if (registro.numOri !== '00') {
+                        return;
+                    }
+
+                    await connection.execute(`
+
+                        UPDATE WB_SEQLIST
+                        SET
+
+                            WB_NUMPED   = ?,
+                            WB_ITEMPED  = ?,
+                            WB_NUMPROD  = ?,
+                            WB_DESPRO   = ?,
+                            WB_DATINI   = ?,
+                            WB_PCHORA   = ?,
+                            WB_STSSAP   = ?,
+                            WB_SEQORDER = ?,
+                            WB_TEMFSC   = ?,
+                            WB_STSGT    = 'L'
+
+                        WHERE
+
+                            WB_NUMEMP = ?
+                            AND WB_NUMORP = ?
+                            AND WB_NUMORI = ?
+                            AND WB_NUMREC = ?
+                            AND WB_NUMSEQ = ?
+                            AND WB_STSGT = 'F'
+
+                    `, [
+
+                        registro.numPed,
+                        registro.itemPed,
+                        registro.numProd,
+                        registro.desProd,
+                        registro.datIni,
+                        registro.pcHora,
+                        registro.stsSap,
+                        registro.seqOrder,
+                        registro.temFsc,
+
+                        registro.numEmp,
+                        registro.numOrp,
+                        registro.numOri,
+                        registro.numRec,
+                        registro.numSeq
+
+                    ]);
+
+                    logger.info(
+                        `[SEQUENCIAMENTO] Registro F reaberto para L: ${chave}`
+                    );
 
                     return;
                 }

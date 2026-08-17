@@ -1,0 +1,55 @@
+.componentes-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #555;
+  }
+  
+  .form-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+  }
+  
+  .form-input:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+  
+  .custom-toast-error {
+    font-size: 20px; /* Ajuste o tamanho da fonte */
+    padding: 30px;   /* Ajuste o preenchimento */
+    height: 80;
+    background-color: #f3b9b4c0; /* Altere a cor de fundo, se desejado */
+    color: rgb(0, 0, 0); /* Altere a cor do texto */
+  }
+
+  .custom-toast-sucess {
+    font-size: 20px; /* Ajuste o tamanho da fonte */
+    padding: 30px;   /* Ajuste o preenchimento */
+    height: 80;
+    background-color: #6add70c0; /* Altere a cor de fundo, se desejado */
+    color: rgb(0, 0, 0); /* Altere a cor do texto */
+  }

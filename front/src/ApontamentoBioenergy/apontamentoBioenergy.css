@@ -198,3 +198,22 @@ text-align: center;
     background-color: #6add70c0; /* Altere a cor de fundo, se desejado */
     color: rgb(0, 0, 0); /* Altere a cor do texto */
   }
+
+
+
+  .button-reimpressao {
+    padding: 10px 20px;
+    margin: 2px;
+    margin-left: auto;   /* empurra o botão para a direita dentro do flex container */
+    font-size: 12px;      /* obs: "10" sem unidade é inválido em CSS, precisa de "px" */
+    border: none;
+    border-radius: 5px;
+    background-color: #e67225;
+    color: rgb(0, 0, 0);
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .button-reimpressao:hover {
+    background-color: #f7a242; /* Cor do botão ao passar o mouse */
+}

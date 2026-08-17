@@ -22,6 +22,7 @@ const [espessuraAut, setEspessuraAut] = useState('');
 const [larguraAut, setLarguraAut] = useState('');
 const [quantidade, setQuantidade] = useState(1);
 const [quantidadeTotal, setQuantidadeTotal] = useState(0);
+const [motivoBanco, setMotivoBanco] = useState([]);
 const [infoTecnicas, setInfoTecnicas] = useState(null);
 const [motivos, setMotivos] = useState([]);
 const navigate = useNavigate();
@@ -300,6 +301,7 @@ const handleButtonClick = async (motivo) => {
              className: 'custom-toast-sucess',
            });
     setQuantidadeTotal(response.data.quantidadeTotal);
+    setMotivoBanco(response.data.motivoBanco);
   } catch (error) {
     toast.error('Erro ao salvar PNC!', {
             position: "bottom-center",
@@ -441,6 +443,26 @@ return (
     </div>
          <div className="label-container">
         <label className = "labelRepasse">A OP {op} possui {quantidadeTotal} peças apontadas.</label>
+      </div>
+      <div className="tableRepasseContainer">
+        <table className="tableRepasse">
+          <thead>
+            <tr>
+              <th>Motivo</th>
+              <th>Quantidade</th>
+            </tr>
+          </thead>
+
+            <tbody>
+              {motivoBanco.map((item, index) => (
+                <tr key={index}>
+                  <td>{item.motivo}</td>
+                  <td>{item.quantidadeTotal}</td>
+                </tr>
+              ))}
+            
+          </tbody>
+        </table>
       </div>
 
     <ToastContainer />

@@ -369,7 +369,7 @@ app.get('/pedidoBioEnergy/:numPedBioEnergy', (req, res) => {
 app.post('/Repasse', async (req, res) => {
   const { op, numrec, motivo, data, quantidade, perfil, espessura, largura, status_largura, recurso, tipo_Apt, qtdPrev } = req.body;
   const sqlInsert = 'INSERT INTO REPASSE (op, numrec, motivo, data, quantidade, perfil, espessura, largura, status_largura, recurso, tipoapt, qtdprev) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-  const sqlSelectTotal = 'SELECT SUM(quantidade) as quantidadeTotal FROM REPASSE WHERE op = ? and recurso = ? and tipoapt = ?';
+  const sqlSelectTotal = 'SELECT SUM(quantidade) as quantidadeTotal, motivo FROM REPASSE WHERE op = ? and recurso = ? and tipoapt = ? group by motivo order by quantidadeTotal desc';
   const connection = await db.getConnection();
 
 
@@ -377,9 +377,13 @@ app.post('/Repasse', async (req, res) => {
     await connection.query(sqlInsert, [op, numrec, motivo, data, quantidade, perfil, espessura, largura, status_largura, recurso, tipo_Apt, qtdPrev]);
 
     const [rows] = await connection.query(sqlSelectTotal, [op, recurso, tipo_Apt]);
-    const quantidadeTotal = rows[0].quantidadeTotal || 0;
+    const quantidadeTotal = rows.reduce(
+        (total, row) => total + Number(row.quantidadeTotal),
+        0
+    );
+    const motivoBanco = rows[0].motivo;
 
-    res.status(200).json({ message: 'Dados adicionados com sucesso', quantidadeTotal });
+    res.status(200).json({ message: 'Dados adicionados com sucesso', quantidadeTotal, motivoBanco: rows });
   } catch (err) {
     //console.error('Erro ao adicionar dados:', err);
     loggerBackend.error(`[REPASSE] Erro ao adicionar dados: ${err.stack || err.message || err}`);
@@ -1200,6 +1204,92 @@ app.post('/printBioenergy', async (req, res) => {
       res.set("Content-Type", "text/plain; charset=utf-8");
       res.send(zpl);   
 
+});
+
+app.post('/printEtiquetasBioenergy', async (req, res) => {
+  const { wb_numEtq } = req.body;
+
+  if (!wb_numEtq) {
+    return res.status(400).json({ error: "wb_numEtq é obrigatório." });
+  }
+
+  let connection;
+  try {
+    connection = await db.getConnection();
+
+    const [rows] = await connection.execute(
+      `SELECT BIO.WB_NUMPROD, BIO.WB_CODDER, BIO.WB_NUMETQ, BIO.WB_QTDETQ, BIO.WB_CODCLI, BIO.WB_NOMCLI, BIO.WB_CODLOT, BIO.WB_NUMPED, PROD.WB_DESPRO
+         FROM WB_APONTAMENTOBIOENERGY AS BIO
+       INNER JOIN WB_DADOSPRODUTO AS PROD ON BIO.WB_NUMPROD = PROD.WB_NUMPROD 
+        WHERE BIO.WB_NUMETQ = ?`,
+      [wb_numEtq]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: `Etiqueta ${wb_numEtq} não encontrada.` });
+    }
+
+    const row = rows[0];
+
+    const clienteEmIngles = String(row.WB_CODCLI) === "886";
+
+    const lote = clienteEmIngles ? "Batch:" : "Lote:";
+    const quantidade = clienteEmIngles ? "Quantity:" : "Quantidade:";
+    const cliente = clienteEmIngles ? "Client:" : "Cliente:";
+    const produto = clienteEmIngles ? "Product:" : "Produto:";
+    const descricao = clienteEmIngles ? "Description:" : "Descrição:";
+    const derivacao = clienteEmIngles ? "Derivation:" : "Derivação:";
+    const madeInBrazil = clienteEmIngles ? "" : "MADE IN BRAZIL";
+
+    if (clienteEmIngles && String(row.WB_NUMPROD) === "800015") {
+        row.WB_NOMCLI = "DESCAMPS"; 
+    }
+
+    if (String(row.WB_CODCLI) === "0" || row.WB_CODCLI === null || String(row.WB_NUMPED) === "0" || row.WB_NUMPED === null) {
+        row.WB_NOMCLI = "BIOENERGY";
+    }
+
+    const zpl = `^XA
+              ^CI28
+              ^LS0
+              ^FWR
+              ^M15  
+              ^FO15,40,^GB750,1125,2^FS
+              ^FO15,1015,^GB610,150,2^FS
+              ^FO715,48^A0,30,30^FD${lote}^FS
+              ^FO620,65^A0,85,110^FD${row.WB_CODLOT}^FS
+              ^FO495,40^GB130,977,2^FS
+              ^FO580,48^A0,30,30^FD${quantidade}^FS
+              ^FO465,470^A0,150,120^FD${row.WB_QTDETQ}^FS
+              ^FO459,48^A0,30,30^FD${cliente}^FS
+              ^FO408,48^A0,40,40^FD${row.WB_NOMCLI}^FS
+              ^FO397,40^GB100,977,2^FS
+              ^FO360,48^A0,30,30^FD${produto}^FS
+              ^FO300,40^GB100,977,2^FS
+              ^FO300,817^GB100,200,2^FS
+              ^FO360,820^A0,30,30^FD${derivacao}^FS
+              ^FO300,350^A0,80,80^FD${row.WB_NUMPROD}^FS
+              ^FO300,880^A0,60,60^FD${row.WB_CODDER}^FS
+              ^FO260,48^A0,30,30^FD${descricao}^FS
+              ^FO215,48^A0,40,40^FD${row.WB_DESPRO}^FS
+              ^FO202,40^GB100,977,2^FS
+              ^FO15,40^GB40,977,2^FS
+              ^FO17,430^A0,30,30^FD${madeInBrazil}^FS
+              ^FO060,1050^BY5^BCI,100,N,N,N^FD${row.WB_NUMETQ}^FS
+              ^FO99,280^BY5^BC,100,Y,N,N^FD${row.WB_NUMETQ}^FS
+              ^XZ`;
+
+    res.set("Content-Type", "text/plain; charset=utf-8");
+    res.send(zpl);
+
+  } catch (error) {
+    loggerBackend.error(`[REIMPRESSÃO ETIQUETA] Erro ao executar a consulta: ${error.stack || error.message || error}`);
+    res.status(500).json({ error: "Erro ao buscar etiqueta no banco" });
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
 });
 
 app.post('/bioenergyApontamento', async (req, res) => {

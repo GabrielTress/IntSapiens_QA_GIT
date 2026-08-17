@@ -40,6 +40,10 @@ function ApontamentoBioenergy() {
     navigate('/sequenciamento', { state: { filtroID } });
   };
 
+  const handleReimpressao = () => {
+    navigate('/reimpressaoBioenergy');
+  };
+
   const handleConsumirComponentes = () => {
     navigate('/componentes', { state: { linha: linhaSelecionada, filtroID: wb_numRec } });
   };
@@ -445,7 +449,8 @@ function ApontamentoBioenergy() {
     try {
       setProcessando(true);
 
-      const turno = calcularTurno();
+      //const turno = calcularTurno();
+      const turno = operador;
 
       const validacaoOp = await validaOp();
       if (!validacaoOp) {
@@ -653,6 +658,9 @@ function ApontamentoBioenergy() {
           </button>
           <button className="button" onClick={handleVoltar}>
             Voltar
+          </button>
+          <button className="button-reimpressao" onClick={handleReimpressao}>
+            Reimprimir
           </button>
         </div>
       </div>

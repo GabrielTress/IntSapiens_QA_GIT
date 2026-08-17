@@ -118,3 +118,76 @@
     background-color: #6add70c0; /* Altere a cor de fundo, se desejado */
     color: rgb(0, 0, 0); /* Altere a cor do texto */
   }
+
+.tableRepasseContainer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+    box-sizing: border-box;
+    overflow-x: auto;
+}
+
+.tableRepasse {
+    width: 100%;
+    max-width: 350px;
+    border-collapse: collapse;
+    margin: 20px auto;
+    font-size: 13px;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.tableRepasse th,
+.tableRepasse td {
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+}
+
+.tableRepasse th {
+    background: #2c3e50;
+    color: #fff;
+    text-align: left;
+}
+
+.tableRepasse td:last-child,
+.tableRepasse th:last-child {
+    text-align: center;
+    width: 80px;
+}
+
+.tableRepasse tbody tr:nth-child(even) {
+    background: #f8f8f8;
+}
+
+.tableRepasse tfoot td {
+    font-weight: bold;
+    background: #ececec;
+    border-top: 2px solid #999;
+}
+
+@media (max-width: 768px) {
+    .tableRepasse {
+        max-width: 100%;
+        font-size: 12px;
+    }
+
+    .tableRepasse th,
+    .tableRepasse td {
+        padding: 6px;
+    }
+
+    .tableRepasse td:last-child,
+    .tableRepasse th:last-child {
+        width: 60px;
+    }
+}
+
+.tableRepasse th:first-child,
+.tableRepasse td:first-child {
+    width: 100px;
+    max-width: 100px;
+    word-break: break-word;
+}
