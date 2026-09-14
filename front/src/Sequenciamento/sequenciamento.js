@@ -15,6 +15,10 @@ function Sequenciamento() {
   const [recursos, setRecursos] = useState([]);
   const [horasAtraso, setHorasAtraso] = useState(0);
   const [pecasAtraso, setPecasAtraso] = useState(0);
+  const [showConversorModal, setShowConversorModal] = useState(false);
+  const [tipoConversao, setTipoConversao] = useState('mmParaPol');
+  const [valorConversao, setValorConversao] = useState('');
+  const [resultadoConversao, setResultadoConversao] = useState('');
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -305,6 +309,27 @@ function Sequenciamento() {
       }
     };
 
+    ////ABRIR DOCUMENTO IT//////////
+    
+    const handleAbrirIT = () => {
+      if (linhaSelecionada !== null) {
+            let numRec = dadosFiltrados[linhaSelecionada].wb_numRec;
+            const pdfUrl = `http://192.168.0.250:9002/documentoIT/${numRec}.pdf`;
+            window.open(pdfUrl, '_blank');
+      } else {
+        toast.error('Selecione uma linha!', {
+          position: "bottom-center",
+          autoClose: 2500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          className: 'custom-toast-error'
+        });
+      }
+    };
+
     const handleAbrirRepasse = () => {
       if (linhaSelecionada !== null) {
         navigate('/repasse', { state: { linha: dadosFiltrados[linhaSelecionada], filtroID: inputId } });
@@ -369,6 +394,158 @@ function Sequenciamento() {
   }
 };
 
+
+  const converterPolegadasParaMilimetros = (texto) => {
+  if (!texto) return '';
+
+  // Remove aspas e normaliza o X
+  let textoNormalizado = texto
+    .replace(/[”″"]/g, '')
+    .replace(/[xX×]/g, 'x')
+    .trim();
+
+  // Separa as dimensões
+  const dimensoes = textoNormalizado
+    .split('x')
+    .map(item => item.trim())
+    .filter(Boolean);
+
+  const resultados = dimensoes.map(dim => {
+
+    let valor = 0;
+
+    // Exemplo: 1-1/16
+    if (dim.includes('-')) {
+
+      const partes = dim.split('-');
+
+      const inteiro = parseFloat(partes[0]) || 0;
+      const fracao = partes[1];
+
+      if (fracao && fracao.includes('/')) {
+        const [numerador, denominador] = fracao.split('/');
+
+        valor =
+          inteiro +
+          (parseFloat(numerador) / parseFloat(denominador));
+      } else {
+        valor = parseFloat(dim);
+      }
+
+    }
+
+    // Exemplo: 1 1/16
+    else if (dim.includes(' ') && dim.includes('/')) {
+
+      const partes = dim.split(/\s+/);
+
+      const inteiro = parseFloat(partes[0]) || 0;
+      const fracao = partes[1];
+
+      const [numerador, denominador] = fracao.split('/');
+
+      valor =
+        inteiro +
+        (parseFloat(numerador) / parseFloat(denominador));
+
+    }
+
+    // Exemplo: 1/16
+    else if (dim.includes('/')) {
+
+      const [numerador, denominador] = dim.split('/');
+
+      valor =
+        parseFloat(numerador) /
+        parseFloat(denominador);
+
+    }
+
+    // Exemplo: 25.4
+    else {
+
+      valor = parseFloat(dim);
+
+    }
+
+    if (isNaN(valor)) {
+      return null;
+    }
+
+    return valor * 25.4;
+  });
+
+  if (resultados.some(valor => valor === null)) {
+    return '';
+  }
+
+  return resultados
+    .map(valor => `${valor.toFixed(2)} mm`)
+    .join(' × ');
+};
+
+const handleValorConversao = (e) => {
+
+  const valor = e.target.value;
+
+  setValorConversao(valor);
+
+  if (!valor.trim()) {
+    setResultadoConversao('');
+    return;
+  }
+
+  if (tipoConversao === 'mmParaPol') {
+
+    const numero = parseFloat(valor);
+
+    if (isNaN(numero)) {
+      setResultadoConversao('');
+      return;
+    }
+
+    setResultadoConversao(
+      `${(numero / 25.4).toFixed(4)} pol`
+    );
+
+  } else {
+
+    const resultado = converterPolegadasParaMilimetros(valor);
+
+    setResultadoConversao(resultado);
+  }
+};
+
+const handleTipoConversao = (e) => {
+  const tipo = e.target.value;
+
+  setTipoConversao(tipo);
+
+  const valor = valorConversao.trim();
+
+  if (!valor) {
+    setResultadoConversao('');
+    return;
+  }
+
+  if (tipo === 'mmParaPol') {
+    const numero = parseFloat(valor);
+
+    if (isNaN(numero)) {
+      setResultadoConversao('');
+      return;
+    }
+
+    setResultadoConversao(
+      `${(numero / 25.4).toFixed(4)} pol`
+    );
+
+  } else {
+    const resultado = converterPolegadasParaMilimetros(valor);
+
+    setResultadoConversao(resultado);
+  }
+};
   
 
   return (
@@ -450,6 +627,11 @@ function Sequenciamento() {
         </button>
         <button 
           className="button"
+          onClick={handleAbrirIT}>
+          IT
+        </button>
+        <button 
+          className="button"
           onClick={handleAbrirRepasse}>
           Repasse
         </button>
@@ -457,6 +639,17 @@ function Sequenciamento() {
           className="button"
          onClick={handleAbrirPnc}>
           PNC
+        </button>
+        <button
+          className="button"
+          onClick={() => {
+            setValorConversao('');
+            setResultadoConversao('');
+            setTipoConversao('mmParaPol');
+            setShowConversorModal(true);
+          }}
+        >
+          Conversor
         </button>
         <button 
           className="button"
@@ -552,6 +745,95 @@ function Sequenciamento() {
           <button className="cancel-button" onClick={() => setShowInfoModal(false)}>
             Cancelar
          </button>
+          </div>
+        </div>
+      )}
+      {showConversorModal && (
+        <div className="modal-overlay">
+          <div className="conversor-modal">
+
+            <div className="conversor-header">
+              <div>
+                <h3>Conversor de Medidas</h3>
+                <span>Milímetros ↔ Polegadas</span>
+              </div>
+
+              <button
+                className="modal-close"
+                onClick={() => setShowConversorModal(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="conversor-body">
+
+              <div className="conversor-field">
+                <label>Tipo de conversão</label>
+
+              <select
+                value={tipoConversao}
+                onChange={handleTipoConversao}
+              >
+                <option value="mmParaPol">
+                  Milímetros → Polegadas
+                </option>
+
+                <option value="polParaMm">
+                  Polegadas → Milímetros
+                </option>
+              </select>
+              </div>
+
+              <div className="conversor-field">
+                <label>
+                  {tipoConversao === 'mmParaPol'
+                    ? 'Valor em milímetros'
+                    : 'Valor em polegadas'}
+                </label>
+
+                <div className="input-medida">
+                  <input
+                    type="text"
+                    value={valorConversao}
+                    onChange={handleValorConversao}
+                    placeholder={
+                      tipoConversao === 'mmParaPol'
+                        ? 'Ex.: 25,4'
+                        : 'Ex.: 1-1/16" X 5-1/4" X 81-11/16"'
+                    }
+                    autoFocus
+                  />
+
+                  <span>
+                    {tipoConversao === 'mmParaPol' ? 'mm' : 'pol'}
+                  </span>
+                </div>
+              </div>
+
+              {resultadoConversao && (
+                <div className="resultado-conversao">
+                  <span className="resultado-label">
+                    Resultado
+                  </span>
+
+                  <strong>
+                    {resultadoConversao}
+                  </strong>
+                </div>
+              )}
+
+            </div>
+
+            <div className="conversor-footer">
+              <button
+                className="btn-modal-cancelar"
+                onClick={() => setShowConversorModal(false)}
+              >
+                Fechar
+              </button>
+            </div>
+
           </div>
         </div>
       )}

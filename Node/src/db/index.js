@@ -366,6 +366,35 @@ app.get('/pedidoBioEnergy/:numPedBioEnergy', (req, res) => {
 
 //////////////////////////////////////////////////////////////
 
+/////////////ABERTURA DE IT DAS MAQUINAS/////////////////////////
+app.get('/documentoIT/:numRec', (req, res) => {
+  const path = require('path');
+  const pdfDirectory = path.resolve('//192.168.0.250/Meus Documentos/QUALIDADE/SGI/PROCEDIMENTOS/FINALIZADAS');
+  const numRec = req.params.numRec.slice(0, 2);
+  const fs = require('fs');
+  // Listar arquivos no diretório
+  fs.readdir(pdfDirectory, (err, files) => {
+    if (err) {
+      return res.status(500).send('Erro ao acessar diretório');
+    }
+
+    // Encontrar o arquivo que começa com numProd
+    const fileName = files.find(file => file.startsWith(numRec));
+    
+    if (fileName) {
+      const filePath = path.join(pdfDirectory, fileName);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'inline; filename="' + fileName + '"');
+      res.sendFile(filePath);
+    } else {
+      res.status(404).send('Arquivo não encontrado');
+    }
+  });
+
+});
+
+//////////////////////////////////////////////////////////////////
+
 app.post('/Repasse', async (req, res) => {
   const { op, numrec, motivo, data, quantidade, perfil, espessura, largura, status_largura, recurso, tipo_Apt, qtdPrev } = req.body;
   const sqlInsert = 'INSERT INTO REPASSE (op, numrec, motivo, data, quantidade, perfil, espessura, largura, status_largura, recurso, tipoapt, qtdprev) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
