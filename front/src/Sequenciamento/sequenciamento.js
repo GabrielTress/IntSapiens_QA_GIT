@@ -394,6 +394,52 @@ function Sequenciamento() {
   }
 };
 
+const handleEmbalagem = async (item) => {
+
+  const senha = prompt('Digite a senha para confirmar a embalagem:');
+
+  if (!senha) return;
+
+  try {
+
+    const response = await axios.post(
+      'http://192.168.0.250:9002/embalagem',
+      {
+        numemp: item.wb_numEmp,
+        numorp: item.wb_numOrp,
+        numori: item.wb_numOri,
+        numrec: item.wb_numRec,
+        numseq: item.wb_numSeq,
+        senha
+      }
+    );
+
+    toast.success(response.data.message);
+
+    setDadosFiltrados(prev =>
+      prev.map(linha =>
+        linha.wb_numOrp === item.wb_numOrp &&
+        linha.wb_numSeq === item.wb_numSeq
+          ? {
+              ...linha,
+              wb_embalagem:
+                linha.wb_embalagem === 'S'
+                  ? 'N'
+                  : 'S'
+            }
+          : linha
+      )
+    );
+
+  } catch (error) {
+
+    toast.error(
+      error.response?.data?.message ||
+      'Erro ao atualizar embalagem'
+    );
+  }
+};
+
 
   const converterPolegadasParaMilimetros = (texto) => {
   if (!texto) return '';
@@ -681,6 +727,7 @@ const handleTipoConversao = (e) => {
                 <th>Saldo</th>
                 <th>PÇ/Hora</th>
                 <th>Ferram</th>
+                <th>Emb</th>
               </tr>
             </thead>
             <tbody>
@@ -714,6 +761,18 @@ const handleTipoConversao = (e) => {
                   >
                     OK
                   </button>
+                  </td>
+                  <td>
+                    <button
+                      className={
+                        item.wb_embalagem === 'S'
+                          ? 'btn-ferramenta-verde'
+                          : 'btn-ferramenta'
+                      }
+                      onClick={() => handleEmbalagem(item)}
+                    >
+                      OK
+                    </button>
                   </td>
                 </tr>
               ))}

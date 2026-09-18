@@ -52,7 +52,8 @@ app.get('/sequenciamento', async (req, res) => {
       wb_stsSap: row.WB_STSSAP,
       wb_seqOrder: row.WB_SEQORDER,
       wb_temFsc: row.WB_TEMFSC,
-      wb_ferramenta: row.WB_FERRAMENTA
+      wb_ferramenta: row.WB_FERRAMENTA,
+      wb_embalagem: row.WB_EMBALAGEM
     }));
 
     res.json(mappedResults);
@@ -1144,6 +1145,130 @@ app.post('/ferramenta', async (req, res) => {
 
         //console.error(error);
         loggerBackend.error(`[FERRAMENTA] Erro ao inserir dados: ${error.stack || error.message || error}`);
+
+
+        return res.status(500).json({
+            message: 'Erro interno'
+        });
+
+    } finally {
+
+        if (connection) {
+            connection.release();
+        }
+    }
+});
+
+//////////EMBALAGEM /////////////////////////////
+
+app.post('/embalagem', async (req, res) => {
+
+    let connection;
+
+    try {
+
+        const {
+            numemp,
+            numorp,
+            numori,
+            numrec,
+            numseq,
+            senha
+        } = req.body;
+
+        connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        if (senha !== '159357') {
+            return res.status(401).json({
+                message: 'Senha inválida'
+            });
+        }
+
+        const [rows] = await connection.execute(`
+            SELECT WB_EMBALAGEM
+            FROM WB_SEQLIST
+            WHERE
+                WB_NUMEMP = ?
+                AND WB_NUMORP = ?
+                AND WB_NUMORI = ?
+                AND WB_NUMREC = ?
+                AND WB_NUMSEQ = ?
+            LIMIT 1
+        `, [
+            numemp,
+            numorp,
+            numori,
+            numrec,
+            numseq
+        ]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                message: 'Registro não encontrado'
+            });
+        }
+
+        const statusAtual = rows[0].WB_EMBALAGEM;
+        const novoStatus =
+            statusAtual === 'S' ? 'N' : 'S';
+
+        await connection.execute(`
+            UPDATE WB_SEQLIST
+            SET WB_EMBALAGEM = ?
+            WHERE
+                WB_NUMEMP = ?
+                AND WB_NUMORP = ?
+                AND WB_NUMORI = ?
+                AND WB_NUMREC = ?
+                AND WB_NUMSEQ = ?
+        `, [
+            novoStatus,
+            numemp,
+            numorp,
+            numori,
+            numrec,
+            numseq
+        ]);
+
+        await connection.execute(`
+            INSERT INTO WB_HIST_EMBALAGEM
+            (
+                WB_NUMEMP,
+                WB_NUMORP,
+                WB_NUMORI,
+                WB_NUMREC,
+                WB_NUMSEQ,
+                STATUS_EMBALAGEM,
+                DATAHORA
+            )
+            VALUES (?, ?, ?, ?, ?, ?, NOW())
+        `, [
+            numemp,
+            numorp,
+            numori,
+            numrec,
+            numseq,
+            novoStatus
+        ]);
+
+        await connection.commit();
+
+        return res.json({
+            message:
+                novoStatus === 'S'
+                ? 'Embalagem liberada'
+                : 'Embalagem removida'
+        });
+
+    } catch (error) {
+
+        if (connection) {
+            await connection.rollback();
+        }
+
+        //console.error(error);
+        loggerBackend.error(`[EMBALAGEM] Erro ao inserir dados: ${error.stack || error.message || error}`);
 
 
         return res.status(500).json({
