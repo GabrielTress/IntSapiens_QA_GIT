@@ -495,12 +495,13 @@ app.post('/printFinger', async (req, res) => {
           ^FO290,45^A0,30,30^FDData:^FS
           ^FO290,130^A0,30,30^FD${wb_dtApont}^FS
           ^FO290,480^A0,30,30^FD${convertRecurso}^FS
-          ^FO255,840^A0,90,90^FD${wb_temFsc}^FS;
+          ^FO255,840^A0,90,90^FD${wb_temFsc}^FS
           ^FO161,40^GB105,1046,2^FS
           ^FO220,45^A0,30,30^FDProduto:^FS
           ^FO150,170^A0,110,130^FD${wb_numProd}^FS
           ^FO140,1100^BY6^BCI,80,N,N,N^FD${wb_numEtq}^FS
           ^FO10,150^BY6^BC,80,Y,Y,N^FD${wb_numEtq}^FS
+          ^PQ2
           ^XZ`;
 
  try {
@@ -1173,6 +1174,8 @@ app.post('/embalagem', async (req, res) => {
             numori,
             numrec,
             numseq,
+            numped,
+            itemPed,
             senha
         } = req.body;
 
@@ -1190,17 +1193,12 @@ app.post('/embalagem', async (req, res) => {
             FROM WB_SEQLIST
             WHERE
                 WB_NUMEMP = ?
-                AND WB_NUMORP = ?
-                AND WB_NUMORI = ?
-                AND WB_NUMREC = ?
-                AND WB_NUMSEQ = ?
-            LIMIT 1
+                AND WB_NUMPED = ?
+                AND WB_ITEMPED = ?
         `, [
             numemp,
-            numorp,
-            numori,
-            numrec,
-            numseq
+            numped,
+            itemPed
         ]);
 
         if (rows.length === 0) {
@@ -1218,17 +1216,13 @@ app.post('/embalagem', async (req, res) => {
             SET WB_EMBALAGEM = ?
             WHERE
                 WB_NUMEMP = ?
-                AND WB_NUMORP = ?
-                AND WB_NUMORI = ?
-                AND WB_NUMREC = ?
-                AND WB_NUMSEQ = ?
+                AND WB_NUMPED = ?
+                AND WB_ITEMPED = ?
         `, [
             novoStatus,
             numemp,
-            numorp,
-            numori,
-            numrec,
-            numseq
+            numped,
+            itemPed
         ]);
 
         await connection.execute(`

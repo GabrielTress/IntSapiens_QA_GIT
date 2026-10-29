@@ -410,6 +410,8 @@ const handleEmbalagem = async (item) => {
         numori: item.wb_numOri,
         numrec: item.wb_numRec,
         numseq: item.wb_numSeq,
+        numped: item.wb_numPed,
+        itemPed: item.wb_itemPed,
         senha
       }
     );
